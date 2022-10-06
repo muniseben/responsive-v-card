@@ -1,3 +1,3 @@
 # responsive-v-card
 
-[Click!](https://github.com/muniseben/responsive-v-card/blob/main/index.html)
+[Click!](https://htmlpreview.github.io/?https://github.com/muniseben/responsive-v-card/blob/main/index.html)
