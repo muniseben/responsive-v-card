@@ -1,0 +1,1722 @@
+GIT-CONFIG(1)                                                              Git Manual                                                             GIT-CONFIG(1)
+
+
+
+NNAAMMEE
+       git-config - Get and set repository or global options
+
+SSYYNNOOPPSSIISS
+       _g_i_t _c_o_n_f_i_g [<file-option>] [--type=<type>] [--fixed-value] [--show-origin] [--show-scope] [-z|--null] <name> [<value> [<value-pattern>]]
+       _g_i_t _c_o_n_f_i_g [<file-option>] [--type=<type>] --add <name> <value>
+       _g_i_t _c_o_n_f_i_g [<file-option>] [--type=<type>] [--fixed-value] --replace-all <name> <value> [<value-pattern>]
+       _g_i_t _c_o_n_f_i_g [<file-option>] [--type=<type>] [--show-origin] [--show-scope] [-z|--null] [--fixed-value] --get <name> [<value-pattern>]
+       _g_i_t _c_o_n_f_i_g [<file-option>] [--type=<type>] [--show-origin] [--show-scope] [-z|--null] [--fixed-value] --get-all <name> [<value-pattern>]
+       _g_i_t _c_o_n_f_i_g [<file-option>] [--type=<type>] [--show-origin] [--show-scope] [-z|--null] [--fixed-value] [--name-only] --get-regexp <name-regex> [<value-pattern>]
+       _g_i_t _c_o_n_f_i_g [<file-option>] [--type=<type>] [-z|--null] --get-urlmatch <name> <URL>
+       _g_i_t _c_o_n_f_i_g [<file-option>] [--fixed-value] --unset <name> [<value-pattern>]
+       _g_i_t _c_o_n_f_i_g [<file-option>] [--fixed-value] --unset-all <name> [<value-pattern>]
+       _g_i_t _c_o_n_f_i_g [<file-option>] --rename-section <old-name> <new-name>
+       _g_i_t _c_o_n_f_i_g [<file-option>] --remove-section <name>
+       _g_i_t _c_o_n_f_i_g [<file-option>] [--show-origin] [--show-scope] [-z|--null] [--name-only] -l | --list
+       _g_i_t _c_o_n_f_i_g [<file-option>] --get-color <name> [<default>]
+       _g_i_t _c_o_n_f_i_g [<file-option>] --get-colorbool <name> [<stdout-is-tty>]
+       _g_i_t _c_o_n_f_i_g [<file-option>] -e | --edit
+
+
+DDEESSCCRRIIPPTTIIOONN
+       You can query/set/replace/unset options with this command. The name is actually the section and the key separated by a dot, and the value will be
+       escaped.
+
+       Multiple lines can be added to an option by using the ----aadddd option. If you want to update or unset an option which can occur on multiple lines, a
+       vvaalluuee--ppaatttteerrnn (which is an extended regular expression, unless the ----ffiixxeedd--vvaalluuee option is given) needs to be given. Only the existing values that match
+       the pattern are updated or unset. If you want to handle the lines that do nnoott match the pattern, just prepend a single exclamation mark in front (see
+       also the section called “EXAMPLES”), but note that this only works when the ----ffiixxeedd--vvaalluuee option is not in use.
+
+       The ----ttyyppee==<<ttyyppee>> option instructs _g_i_t _c_o_n_f_i_g to ensure that incoming and outgoing values are canonicalize-able under the given <type>. If no
+       ----ttyyppee==<<ttyyppee>> is given, no canonicalization will be performed. Callers may unset an existing ----ttyyppee specifier with ----nnoo--ttyyppee.
+
+       When reading, the values are read from the system, global and repository local configuration files by default, and options ----ssyysstteemm, ----gglloobbaall, ----llooccaall,
+       ----wwoorrkkttrreeee and ----ffiillee <<ffiilleennaammee>> can be used to tell the command to read from only that location (see the section called “FILES”).
+
+       When writing, the new value is written to the repository local configuration file by default, and options ----ssyysstteemm, ----gglloobbaall, ----wwoorrkkttrreeee, ----ffiillee
+       <<ffiilleennaammee>> can be used to tell the command to write to that location (you can say ----llooccaall but that is the default).
+
+       This command will fail with non-zero status upon error. Some exit codes are:
+
+       •   The section or key is invalid (ret=1),
+
+       •   no section or name was provided (ret=2),
+
+       •   the config file is invalid (ret=3),
+
+       •   the config file cannot be written (ret=4),
+
+       •   you try to unset an option which does not exist (ret=5),
+
+       •   you try to unset/set an option for which multiple lines match (ret=5), or
+
+       •   you try to use an invalid regexp (ret=6).
+
+       On success, the command returns the exit code 0.
+
+       A list of all available configuration variables can be obtained using the ggiitt hheellpp ----ccoonnffiigg command.
+
+OOPPTTIIOONNSS
+       --replace-all
+           Default behavior is to replace at most one line. This replaces all lines matching the key (and optionally the vvaalluuee--ppaatttteerrnn).
+
+       --add
+           Adds a new line to the option without altering any existing values. This is the same as providing _^_$ as the vvaalluuee--ppaatttteerrnn in ----rreeppllaaccee--aallll.
+
+       --get
+           Get the value for a given key (optionally filtered by a regex matching the value). Returns error code 1 if the key was not found and the last value
+           if multiple key values were found.
+
+       --get-all
+           Like get, but returns all values for a multi-valued key.
+
+       --get-regexp
+           Like --get-all, but interprets the name as a regular expression and writes out the key names. Regular expression matching is currently
+           case-sensitive and done against a canonicalized version of the key in which section and variable names are lowercased, but subsection names are not.
+
+       --get-urlmatch <name> <URL>
+           When given a two-part name section.key, the value for section.<URL>.key whose <URL> part matches the best to the given URL is returned (if no such
+           key exists, the value for section.key is used as a fallback). When given just the section as name, do so for all the keys in the section and list
+           them. Returns error code 1 if no value is found.
+
+       --global
+           For writing options: write to global ~~//..ggiittccoonnffiigg file rather than the repository ..ggiitt//ccoonnffiigg, write to $$XXDDGG__CCOONNFFIIGG__HHOOMMEE//ggiitt//ccoonnffiigg file if this
+           file exists and the ~~//..ggiittccoonnffiigg file doesn’t.
+
+           For reading options: read only from global ~~//..ggiittccoonnffiigg and from $$XXDDGG__CCOONNFFIIGG__HHOOMMEE//ggiitt//ccoonnffiigg rather than from all available files.
+
+           See also the section called “FILES”.
+
+       --system
+           For writing options: write to system-wide $$((pprreeffiixx))//eettcc//ggiittccoonnffiigg rather than the repository ..ggiitt//ccoonnffiigg.
+
+           For reading options: read only from system-wide $$((pprreeffiixx))//eettcc//ggiittccoonnffiigg rather than from all available files.
+
+           See also the section called “FILES”.
+
+       --local
+           For writing options: write to the repository ..ggiitt//ccoonnffiigg file. This is the default behavior.
+
+           For reading options: read only from the repository ..ggiitt//ccoonnffiigg rather than from all available files.
+
+           See also the section called “FILES”.
+
+       --worktree
+           Similar to ----llooccaall except that $$GGIITT__DDIIRR//ccoonnffiigg..wwoorrkkttrreeee is read from or written to if eexxtteennssiioonnss..wwoorrkkttrreeeeCCoonnffiigg is enabled. If not it’s the same as
+           ----llooccaall. Note that $$GGIITT__DDIIRR is equal to $$GGIITT__CCOOMMMMOONN__DDIIRR for the main working tree, but is of the form $$GGIITT__DDIIRR//wwoorrkkttrreeeess//<<iidd>>// for other working
+           trees. See ggiitt--wwoorrkkttrreeee(1) to learn how to enable eexxtteennssiioonnss..wwoorrkkttrreeeeCCoonnffiigg.
+
+       -f <config-file>, --file <config-file>
+           For writing options: write to the specified file rather than the repository ..ggiitt//ccoonnffiigg.
+
+           For reading options: read only from the specified file rather than from all available files.
+
+           See also the section called “FILES”.
+
+       --blob <blob>
+           Similar to ----ffiillee but use the given blob instead of a file. E.g. you can use _m_a_s_t_e_r_:_._g_i_t_m_o_d_u_l_e_s to read values from the file _._g_i_t_m_o_d_u_l_e_s in the
+           master branch. See "SPECIFYING REVISIONS" section in ggiittrreevviissiioonnss(7) for a more complete list of ways to spell blob names.
+
+       --remove-section
+           Remove the given section from the configuration file.
+
+       --rename-section
+           Rename the given section to a new name.
+
+       --unset
+           Remove the line matching the key from config file.
+
+       --unset-all
+           Remove all lines matching the key from config file.
+
+       -l, --list
+           List all variables set in config file, along with their values.
+
+       --fixed-value
+           When used with the vvaalluuee--ppaatttteerrnn argument, treat vvaalluuee--ppaatttteerrnn as an exact string instead of a regular expression. This will restrict the name/value
+           pairs that are matched to only those where the value is exactly equal to the vvaalluuee--ppaatttteerrnn.
+
+       --type <type>
+           _g_i_t _c_o_n_f_i_g will ensure that any input or output is valid under the given type constraint(s), and will canonicalize outgoing values in <<ttyyppee>>'s
+           canonical form.
+
+           Valid <<ttyyppee>>'s include:
+
+           •   _b_o_o_l: canonicalize values as either "true" or "false".
+
+           •   _i_n_t: canonicalize values as simple decimal numbers. An optional suffix of _k, _m, or _g will cause the value to be multiplied by 1024, 1048576, or
+               1073741824 upon input.
+
+           •   _b_o_o_l_-_o_r_-_i_n_t: canonicalize according to either _b_o_o_l or _i_n_t, as described above.
+
+           •   _p_a_t_h: canonicalize by adding a leading ~~ to the value of $$HHOOMMEE and ~~uusseerr to the home directory for the specified user. This specifier has no
+               effect when setting the value (but you can use ggiitt ccoonnffiigg sseeccttiioonn..vvaarriiaabbllee ~~// from the command line to let your shell do the expansion.)
+
+           •   _e_x_p_i_r_y_-_d_a_t_e: canonicalize by converting from a fixed or relative date-string to a timestamp. This specifier has no effect when setting the
+               value.
+
+           •   _c_o_l_o_r: When getting a value, canonicalize by converting to an ANSI color escape sequence. When setting a value, a sanity-check is performed to
+               ensure that the given value is canonicalize-able as an ANSI color, but it is written as-is.
+
+       --bool, --int, --bool-or-int, --path, --expiry-date
+           Historical options for selecting a type specifier. Prefer instead ----ttyyppee (see above).
+
+       --no-type
+           Un-sets the previously set type specifier (if one was previously set). This option requests that _g_i_t _c_o_n_f_i_g not canonicalize the retrieved variable.
+           ----nnoo--ttyyppee has no effect without ----ttyyppee==<<ttyyppee>> or ----<<ttyyppee>>.
+
+       -z, --null
+           For all options that output values and/or keys, always end values with the null character (instead of a newline). Use newline instead as a delimiter
+           between key and value. This allows for secure parsing of the output without getting confused e.g. by values that contain line breaks.
+
+       --name-only
+           Output only the names of config variables for ----lliisstt or ----ggeett--rreeggeexxpp.
+
+       --show-origin
+           Augment the output of all queried config options with the origin type (file, standard input, blob, command line) and the actual origin (config file
+           path, ref, or blob id if applicable).
+
+       --show-scope
+           Similar to ----sshhooww--oorriiggiinn in that it augments the output of all queried config options with the scope of that value (worktree, local, global, system,
+           command).
+
+       --get-colorbool <name> [<stdout-is-tty>]
+           Find the color setting for <<nnaammee>> (e.g.  ccoolloorr..ddiiffff) and output "true" or "false".  <<ssttddoouutt--iiss--ttttyy>> should be either "true" or "false", and is taken
+           into account when configuration says "auto". If <<ssttddoouutt--iiss--ttttyy>> is missing, then checks the standard output of the command itself, and exits with
+           status 0 if color is to be used, or exits with status 1 otherwise. When the color setting for nnaammee is undefined, the command uses ccoolloorr..uuii as
+           fallback.
+
+       --get-color <name> [<default>]
+           Find the color configured for nnaammee (e.g.  ccoolloorr..ddiiffff..nneeww) and output it as the ANSI color escape sequence to the standard output. The optional
+           ddeeffaauulltt parameter is used instead, if there is no color configured for nnaammee.
+
+           ----ttyyppee==ccoolloorr [[----ddeeffaauulltt==<<ddeeffaauulltt>>]] is preferred over ----ggeett--ccoolloorr (but note that ----ggeett--ccoolloorr will omit the trailing newline printed by ----ttyyppee==ccoolloorr).
+
+       -e, --edit
+           Opens an editor to modify the specified config file; either ----ssyysstteemm, ----gglloobbaall, or repository (default).
+
+       --[no-]includes
+           Respect iinncclluuddee..** directives in config files when looking up values. Defaults to ooffff when a specific file is given (e.g., using ----ffiillee, ----gglloobbaall,
+           etc) and oonn when searching all config files.
+
+       --default <value>
+           When using ----ggeett, and the requested variable is not found, behave as if <value> were the value assigned to the that variable.
+
+CCOONNFFIIGGUURRAATTIIOONN
+       ppaaggeerr..ccoonnffiigg is only respected when listing configuration, i.e., when using ----lliisstt or any of the ----ggeett--** which may return multiple results. The default
+       is to use a pager.
+
+FFIILLEESS
+       If not set explicitly with ----ffiillee, there are four files where _g_i_t _c_o_n_f_i_g will search for configuration options:
+
+       $(prefix)/etc/gitconfig
+           System-wide configuration file.
+
+       $XDG_CONFIG_HOME/git/config
+           Second user-specific configuration file. If $XDG_CONFIG_HOME is not set or empty, $$HHOOMMEE//..ccoonnffiigg//ggiitt//ccoonnffiigg will be used. Any single-valued variable
+           set in this file will be overwritten by whatever is in ~~//..ggiittccoonnffiigg. It is a good idea not to create this file if you sometimes use older versions
+           of Git, as support for this file was added fairly recently.
+
+       ~/.gitconfig
+           User-specific configuration file. Also called "global" configuration file.
+
+       $GIT_DIR/config
+           Repository specific configuration file.
+
+       $GIT_DIR/config.worktree
+           This is optional and is only searched when eexxtteennssiioonnss..wwoorrkkttrreeeeCCoonnffiigg is present in $GIT_DIR/config.
+
+       If no further options are given, all reading options will read all of these files that are available. If the global or the system-wide configuration
+       file are not available they will be ignored. If the repository configuration file is not available or readable, _g_i_t _c_o_n_f_i_g will exit with a non-zero
+       error code. However, in neither case will an error message be issued.
+
+       The files are read in the order given above, with last value found taking precedence over values read earlier. When multiple values are taken then all
+       values of a key from all files will be used.
+
+       You may override individual configuration parameters when running any git command by using the --cc option. See ggiitt(1) for details.
+
+       All writing options will per default write to the repository specific configuration file. Note that this also affects options like ----rreeppllaaccee--aallll and
+       ----uunnsseett. _g_i_t _c_o_n_f_i_g wwiillll oonnllyy eevveerr cchhaannggee oonnee ffiillee aatt aa ttiimmee.
+
+       You can override these rules using the ----gglloobbaall, ----ssyysstteemm, ----llooccaall, ----wwoorrkkttrreeee, and ----ffiillee command-line options; see the section called “OPTIONS” above.
+
+EENNVVIIRROONNMMEENNTT
+       GIT_CONFIG_GLOBAL, GIT_CONFIG_SYSTEM
+           Take the configuration from the given files instead from global or system-level configuration. See ggiitt(1) for details.
+
+       GIT_CONFIG_NOSYSTEM
+           Whether to skip reading settings from the system-wide $(prefix)/etc/gitconfig file. See ggiitt(1) for details.
+
+       See also the section called “FILES”.
+
+       GIT_CONFIG_COUNT, GIT_CONFIG_KEY_<n>, GIT_CONFIG_VALUE_<n>
+           If GIT_CONFIG_COUNT is set to a positive number, all environment pairs GIT_CONFIG_KEY_<n> and GIT_CONFIG_VALUE_<n> up to that number will be added
+           to the process’s runtime configuration. The config pairs are zero-indexed. Any missing key or value is treated as an error. An empty
+           GIT_CONFIG_COUNT is treated the same as GIT_CONFIG_COUNT=0, namely no pairs are processed. These environment variables will override values in
+           configuration files, but will be overridden by any explicit options passed via ggiitt --cc.
+
+           This is useful for cases where you want to spawn multiple git commands with a common configuration but cannot depend on a configuration file, for
+           example when writing scripts.
+
+       GIT_CONFIG
+           If no ----ffiillee option is provided to ggiitt ccoonnffiigg, use the file given by GGIITT__CCOONNFFIIGG as if it were provided via ----ffiillee. This variable has no effect on
+           other Git commands, and is mostly for historical compatibility; there is generally no reason to use it instead of the ----ffiillee option.
+
+EEXXAAMMPPLLEESS
+       Given a .git/config like this:
+
+           #
+           # This is the config file, and
+           # a '#' or ';' character indicates
+           # a comment
+           #
+
+           ; core variables
+           [core]
+                   ; Don't trust file modes
+                   filemode = false
+
+           ; Our diff algorithm
+           [diff]
+                   external = /usr/local/bin/diff-wrapper
+                   renames = true
+
+           ; Proxy settings
+           [core]
+                   gitproxy=proxy-command for kernel.org
+                   gitproxy=default-proxy ; for all the rest
+
+           ; HTTP
+           [http]
+                   sslVerify
+           [http "https://weak.example.com"]
+                   sslVerify = false
+                   cookieFile = /tmp/cookie.txt
+
+
+       you can set the filemode to true with
+
+           % git config core.filemode true
+
+
+       The hypothetical proxy command entries actually have a postfix to discern what URL they apply to. Here is how to change the entry for kernel.org to
+       "ssh".
+
+           % git config core.gitproxy '"ssh" for kernel.org' 'for kernel.org$'
+
+
+       This makes sure that only the key/value pair for kernel.org is replaced.
+
+       To delete the entry for renames, do
+
+           % git config --unset diff.renames
+
+
+       If you want to delete an entry for a multivar (like core.gitproxy above), you have to provide a regex matching the value of exactly one line.
+
+       To query the value for a given key, do
+
+           % git config --get core.filemode
+
+
+       or
+
+           % git config core.filemode
+
+
+       or, to query a multivar:
+
+           % git config --get core.gitproxy "for kernel.org$"
+
+
+       If you want to know all the values for a multivar, do:
+
+           % git config --get-all core.gitproxy
+
+
+       If you like to live dangerously, you can replace aallll core.gitproxy by a new one with
+
+           % git config --replace-all core.gitproxy ssh
+
+
+       However, if you really only want to replace the line for the default proxy, i.e. the one without a "for ..." postfix, do something like this:
+
+           % git config core.gitproxy ssh '! for '
+
+
+       To actually match only values with an exclamation mark, you have to
+
+           % git config section.key value '[!]'
+
+
+       To add a new proxy, without altering any of the existing ones, use
+
+           % git config --add core.gitproxy '"proxy-command" for example.com'
+
+
+       An example to use customized color from the configuration in your script:
+
+           #!/bin/sh
+           WS=$(git config --get-color color.diff.whitespace "blue reverse")
+           RESET=$(git config --get-color "" "reset")
+           echo "${WS}your whitespace color or blue reverse${RESET}"
+
+
+       For URLs in hhttttppss::////wweeaakk..eexxaammppllee..ccoomm, hhttttpp..ssssllVVeerriiffyy is set to false, while it is set to ttrruuee for all others:
+
+           % git config --type=bool --get-urlmatch http.sslverify https://good.example.com
+           true
+           % git config --type=bool --get-urlmatch http.sslverify https://weak.example.com
+           false
+           % git config --get-urlmatch http https://weak.example.com
+           http.cookieFile /tmp/cookie.txt
+           http.sslverify false
+
+
+CCOONNFFIIGGUURRAATTIIOONN FFIILLEE
+       The Git configuration file contains a number of variables that affect the Git commands' behavior. The files ..ggiitt//ccoonnffiigg and optionally ccoonnffiigg..wwoorrkkttrreeee
+       (see the "CONFIGURATION FILE" section of ggiitt--wwoorrkkttrreeee(1)) in each repository are used to store the configuration for that repository, and
+       $$HHOOMMEE//..ggiittccoonnffiigg is used to store a per-user configuration as fallback values for the ..ggiitt//ccoonnffiigg file. The file //eettcc//ggiittccoonnffiigg can be used to store a
+       system-wide default configuration.
+
+       The configuration variables are used by both the Git plumbing and the porcelains. The variables are divided into sections, wherein the fully qualified
+       variable name of the variable itself is the last dot-separated segment and the section name is everything before the last dot. The variable names are
+       case-insensitive, allow only alphanumeric characters and --, and must start with an alphabetic character. Some variables may appear multiple times; we
+       say then that the variable is multivalued.
+
+   SSyynnttaaxx
+       The syntax is fairly flexible and permissive; whitespaces are mostly ignored. The _# and _; characters begin comments to the end of line, blank lines are
+       ignored.
+
+       The file consists of sections and variables. A section begins with the name of the section in square brackets and continues until the next section
+       begins. Section names are case-insensitive. Only alphanumeric characters, -- and .. are allowed in section names. Each variable must belong to some
+       section, which means that there must be a section header before the first setting of a variable.
+
+       Sections can be further divided into subsections. To begin a subsection put its name in double quotes, separated by space from the section name, in the
+       section header, like in the example below:
+
+                   [section "subsection"]
+
+
+       Subsection names are case sensitive and can contain any characters except newline and the null byte. Doublequote "" and backslash can be included by
+       escaping them as \\"" and \\\\, respectively. Backslashes preceding other characters are dropped when reading; for example, \\tt is read as tt and \\00 is read
+       as 00. Section headers cannot span multiple lines. Variables may belong directly to a section or to a given subsection. You can have [[sseeccttiioonn]] if you
+       have [[sseeccttiioonn ""ssuubbsseeccttiioonn""]], but you don’t need to.
+
+       There is also a deprecated [[sseeccttiioonn..ssuubbsseeccttiioonn]] syntax. With this syntax, the subsection name is converted to lower-case and is also compared case
+       sensitively. These subsection names follow the same restrictions as section names.
+
+       All the other lines (and the remainder of the line after the section header) are recognized as setting variables, in the form _n_a_m_e _= _v_a_l_u_e (or just
+       _n_a_m_e, which is a short-hand to say that the variable is the boolean "true"). The variable names are case-insensitive, allow only alphanumeric characters
+       and --, and must start with an alphabetic character.
+
+       A line that defines a value can be continued to the next line by ending it with a \\; the backslash and the end-of-line are stripped. Leading whitespaces
+       after _n_a_m_e _=, the remainder of the line after the first comment character _# or _;, and trailing whitespaces of the line are discarded unless they are
+       enclosed in double quotes. Internal whitespaces within the value are retained verbatim.
+
+       Inside double quotes, double quote "" and backslash \\ characters must be escaped: use \\"" for "" and \\\\ for \\.
+
+       The following escape sequences (beside \\"" and \\\\) are recognized: \\nn for newline character (NL), \\tt for horizontal tabulation (HT, TAB) and \\bb for
+       backspace (BS). Other char escape sequences (including octal escape sequences) are invalid.
+
+   IInncclluuddeess
+       The iinncclluuddee and iinncclluuddeeIIff sections allow you to include config directives from another source. These sections behave identically to each other with the
+       exception that iinncclluuddeeIIff sections may be ignored if their condition does not evaluate to true; see "Conditional includes" below.
+
+       You can include a config file from another by setting the special iinncclluuddee..ppaatthh (or iinncclluuddeeIIff..**..ppaatthh) variable to the name of the file to be included.
+       The variable takes a pathname as its value, and is subject to tilde expansion. These variables can be given multiple times.
+
+       The contents of the included file are inserted immediately, as if they had been found at the location of the include directive. If the value of the
+       variable is a relative path, the path is considered to be relative to the configuration file in which the include directive was found. See below for
+       examples.
+
+   CCoonnddiittiioonnaall iinncclluuddeess
+       You can include a config file from another conditionally by setting a iinncclluuddeeIIff..<<ccoonnddiittiioonn>>..ppaatthh variable to the name of the file to be included.
+
+       The condition starts with a keyword followed by a colon and some data whose format and meaning depends on the keyword. Supported keywords are:
+
+       ggiittddiirr
+           The data that follows the keyword ggiittddiirr:: is used as a glob pattern. If the location of the .git directory matches the pattern, the include
+           condition is met.
+
+           The .git location may be auto-discovered, or come from $$GGIITT__DDIIRR environment variable. If the repository is auto discovered via a .git file (e.g.
+           from submodules, or a linked worktree), the .git location would be the final location where the .git directory is, not where the .git file is.
+
+           The pattern can contain standard globbing wildcards and two additional ones, ****// and //****, that can match multiple path components. Please refer to
+           ggiittiiggnnoorree(5) for details. For convenience:
+
+           •   If the pattern starts with ~~//, ~~ will be substituted with the content of the environment variable HHOOMMEE.
+
+           •   If the pattern starts with ..//, it is replaced with the directory containing the current config file.
+
+           •   If the pattern does not start with either ~~//, ..// or //, ****// will be automatically prepended. For example, the pattern ffoooo//bbaarr becomes ****//ffoooo//bbaarr
+               and would match //aannyy//ppaatthh//ttoo//ffoooo//bbaarr.
+
+           •   If the pattern ends with //, **** will be automatically added. For example, the pattern ffoooo// becomes ffoooo//****. In other words, it matches "foo" and
+               everything inside, recursively.
+
+       ggiittddiirr//ii
+           This is the same as ggiittddiirr except that matching is done case-insensitively (e.g. on case-insensitive file systems)
+
+       oonnbbrraanncchh
+           The data that follows the keyword oonnbbrraanncchh:: is taken to be a pattern with standard globbing wildcards and two additional ones, ****// and //****, that can
+           match multiple path components. If we are in a worktree where the name of the branch that is currently checked out matches the pattern, the include
+           condition is met.
+
+           If the pattern ends with //, **** will be automatically added. For example, the pattern ffoooo// becomes ffoooo//****. In other words, it matches all branches
+           that begin with ffoooo//. This is useful if your branches are organized hierarchically and you would like to apply a configuration to all the branches
+           in that hierarchy.
+
+       hhaassccoonnffiigg::rreemmoottee..**..uurrll::
+           The data that follows this keyword is taken to be a pattern with standard globbing wildcards and two additional ones, ****// and //****, that can match
+           multiple components. The first time this keyword is seen, the rest of the config files will be scanned for remote URLs (without applying any
+           values). If there exists at least one remote URL that matches this pattern, the include condition is met.
+
+           Files included by this option (directly or indirectly) are not allowed to contain remote URLs.
+
+           Note that unlike other includeIf conditions, resolving this condition relies on information that is not yet known at the point of reading the
+           condition. A typical use case is this option being present as a system-level or global-level config, and the remote URL being in a local-level
+           config; hence the need to scan ahead when resolving this condition. In order to avoid the chicken-and-egg problem in which potentially-included
+           files can affect whether such files are potentially included, Git breaks the cycle by prohibiting these files from affecting the resolution of these
+           conditions (thus, prohibiting them from declaring remote URLs).
+
+           As for the naming of this keyword, it is for forwards compatibiliy with a naming scheme that supports more variable-based include conditions, but
+           currently Git only supports the exact keyword described above.
+
+       A few more notes on matching via ggiittddiirr and ggiittddiirr//ii:
+
+       •   Symlinks in $$GGIITT__DDIIRR are not resolved before matching.
+
+       •   Both the symlink & realpath versions of paths will be matched outside of $$GGIITT__DDIIRR. E.g. if ~/git is a symlink to /mnt/storage/git, both ggiittddiirr::~~//ggiitt
+           and ggiittddiirr:://mmnntt//ssttoorraaggee//ggiitt will match.
+
+           This was not the case in the initial release of this feature in v2.13.0, which only matched the realpath version. Configuration that wants to be
+           compatible with the initial release of this feature needs to either specify only the realpath version, or both versions.
+
+       •   Note that "../" is not special and will match literally, which is unlikely what you want.
+
+   EExxaammppllee
+           # Core variables
+           [core]
+                   ; Don't trust file modes
+                   filemode = false
+
+           # Our diff algorithm
+           [diff]
+                   external = /usr/local/bin/diff-wrapper
+                   renames = true
+
+           [branch "devel"]
+                   remote = origin
+                   merge = refs/heads/devel
+
+           # Proxy settings
+           [core]
+                   gitProxy="ssh" for "kernel.org"
+                   gitProxy=default-proxy ; for the rest
+
+           [include]
+                   path = /path/to/foo.inc ; include by absolute path
+                   path = foo.inc ; find "foo.inc" relative to the current file
+                   path = ~/foo.inc ; find "foo.inc" in your `$HOME` directory
+
+           ; include if $GIT_DIR is /path/to/foo/.git
+           [includeIf "gitdir:/path/to/foo/.git"]
+                   path = /path/to/foo.inc
+
+           ; include for all repositories inside /path/to/group
+           [includeIf "gitdir:/path/to/group/"]
+                   path = /path/to/foo.inc
+
+           ; include for all repositories inside $HOME/to/group
+           [includeIf "gitdir:~/to/group/"]
+                   path = /path/to/foo.inc
+
+           ; relative paths are always relative to the including
+           ; file (if the condition is true); their location is not
+           ; affected by the condition
+           [includeIf "gitdir:/path/to/group/"]
+                   path = foo.inc
+
+           ; include only if we are in a worktree where foo-branch is
+           ; currently checked out
+           [includeIf "onbranch:foo-branch"]
+                   path = foo.inc
+
+           ; include only if a remote with the given URL exists (note
+           ; that such a URL may be provided later in a file or in a
+           ; file read after this file is read, as seen in this example)
+           [includeIf "hasconfig:remote.*.url:https://example.com/**"]
+                   path = foo.inc
+           [remote "origin"]
+                   url = https://example.com/git
+
+
+   VVaalluueess
+       Values of many variables are treated as a simple string, but there are variables that take values of specific types and there are rules as to how to
+       spell them.
+
+       boolean
+           When a variable is said to take a boolean value, many synonyms are accepted for _t_r_u_e and _f_a_l_s_e; these are all case-insensitive.
+
+           true
+               Boolean true literals are yyeess, oonn, ttrruuee, and 11. Also, a variable defined without == <<vvaalluuee>> is taken as true.
+
+           false
+               Boolean false literals are nnoo, ooffff, ffaallssee, 00 and the empty string.
+
+               When converting a value to its canonical form using the ----ttyyppee==bbooooll type specifier, _g_i_t _c_o_n_f_i_g will ensure that the output is "true" or "false"
+               (spelled in lowercase).
+
+       integer
+           The value for many variables that specify various sizes can be suffixed with kk, MM,... to mean "scale the number by 1024", "by 1024x1024", etc.
+
+       color
+           The value for a variable that takes a color is a list of colors (at most two, one for foreground and one for background) and attributes (as many as
+           you want), separated by spaces.
+
+           The basic colors accepted are nnoorrmmaall, bbllaacckk, rreedd, ggrreeeenn, yyeellllooww, bblluuee, mmaaggeennttaa, ccyyaann, wwhhiittee and ddeeffaauulltt. The first color given is the foreground;
+           the second is the background. All the basic colors except nnoorrmmaall and ddeeffaauulltt have a bright variant that can be specified by prefixing the color with
+           bbrriigghhtt, like bbrriigghhttrreedd.
+
+           The color nnoorrmmaall makes no change to the color. It is the same as an empty string, but can be used as the foreground color when specifying a
+           background color alone (for example, "normal red").
+
+           The color ddeeffaauulltt explicitly resets the color to the terminal default, for example to specify a cleared background. Although it varies between
+           terminals, this is usually not the same as setting to "white black".
+
+           Colors may also be given as numbers between 0 and 255; these use ANSI 256-color mode (but note that not all terminals may support this). If your
+           terminal supports it, you may also specify 24-bit RGB values as hex, like ##ffff00aabb33.
+
+           The accepted attributes are bboolldd, ddiimm, uull, bblliinnkk, rreevveerrssee, iittaalliicc, and ssttrriikkee (for crossed-out or "strikethrough" letters). The position of any
+           attributes with respect to the colors (before, after, or in between), doesn’t matter. Specific attributes may be turned off by prefixing them with
+           nnoo or nnoo-- (e.g., nnoorreevveerrssee, nnoo--uull, etc).
+
+           The pseudo-attribute rreesseett resets all colors and attributes before applying the specified coloring. For example, rreesseett ggrreeeenn will result in a green
+           foreground and default background without any active attributes.
+
+           An empty color string produces no color effect at all. This can be used to avoid coloring specific elements without disabling color entirely.
+
+           For git’s pre-defined color slots, the attributes are meant to be reset at the beginning of each item in the colored output. So setting
+           ccoolloorr..ddeeccoorraattee..bbrraanncchh to bbllaacckk will paint that branch name in a plain bbllaacckk, even if the previous thing on the same output line (e.g. opening
+           parenthesis before the list of branch names in lloogg ----ddeeccoorraattee output) is set to be painted with bboolldd or some other attribute. However, custom log
+           formats may do more complicated and layered coloring, and the negated forms may be useful there.
+
+       pathname
+           A variable that takes a pathname value can be given a string that begins with "~~//" or "~~uusseerr//", and the usual tilde expansion happens to such a
+           string: ~~// is expanded to the value of $$HHOOMMEE, and ~~uusseerr// to the specified user’s home directory.
+
+           If a path starts with %%((pprreeffiixx))//, the remainder is interpreted as a path relative to Git’s "runtime prefix", i.e. relative to the location where Git
+           itself was installed. For example, %%((pprreeffiixx))//bbiinn// refers to the directory in which the Git executable itself lives. If Git was compiled without
+           runtime prefix support, the compiled-in prefix will be substituted instead. In the unlikely event that a literal path needs to be specified that
+           should _n_o_t be expanded, it needs to be prefixed by ..//, like so: ..//%%((pprreeffiixx))//bbiinn.
+
+   VVaarriiaabblleess
+       Note that this list is non-comprehensive and not necessarily complete. For command-specific variables, you will find a more detailed description in the
+       appropriate manual page.
+
+       Other git-related tools may and do use their own variables. When inventing new variables for use in your own tool, make sure their names do not conflict
+       with those that are used by Git itself and other popular tools, and describe them in your documentation.
+
+       advice.*
+           These variables control various optional help messages designed to aid new users. All _a_d_v_i_c_e_._* variables default to _t_r_u_e, and you can tell Git that
+           you do not need help by setting these to _f_a_l_s_e:
+
+           ambiguousFetchRefspec
+               Advice shown when fetch refspec for multiple remotes map to the same remote-tracking branch namespace and causes branch tracking set-up to fail.
+
+           fetchShowForcedUpdates
+               Advice shown when ggiitt--ffeettcchh(1) takes a long time to calculate forced updates after ref updates, or to warn that the check is disabled.
+
+           pushUpdateRejected
+               Set this variable to _f_a_l_s_e if you want to disable _p_u_s_h_N_o_n_F_F_C_u_r_r_e_n_t, _p_u_s_h_N_o_n_F_F_M_a_t_c_h_i_n_g, _p_u_s_h_A_l_r_e_a_d_y_E_x_i_s_t_s, _p_u_s_h_F_e_t_c_h_F_i_r_s_t, _p_u_s_h_N_e_e_d_s_F_o_r_c_e, and
+               _p_u_s_h_R_e_f_N_e_e_d_s_U_p_d_a_t_e simultaneously.
+
+           pushNonFFCurrent
+               Advice shown when ggiitt--ppuusshh(1) fails due to a non-fast-forward update to the current branch.
+
+           pushNonFFMatching
+               Advice shown when you ran ggiitt--ppuusshh(1) and pushed _m_a_t_c_h_i_n_g _r_e_f_s explicitly (i.e. you used _:, or specified a refspec that isn’t your current
+               branch) and it resulted in a non-fast-forward error.
+
+           pushAlreadyExists
+               Shown when ggiitt--ppuusshh(1) rejects an update that does not qualify for fast-forwarding (e.g., a tag.)
+
+           pushFetchFirst
+               Shown when ggiitt--ppuusshh(1) rejects an update that tries to overwrite a remote ref that points at an object we do not have.
+
+           pushNeedsForce
+               Shown when ggiitt--ppuusshh(1) rejects an update that tries to overwrite a remote ref that points at an object that is not a commit-ish, or make the
+               remote ref point at an object that is not a commit-ish.
+
+           pushUnqualifiedRefname
+               Shown when ggiitt--ppuusshh(1) gives up trying to guess based on the source and destination refs what remote ref namespace the source belongs in, but
+               where we can still suggest that the user push to either refs/heads/* or refs/tags/* based on the type of the source object.
+
+           pushRefNeedsUpdate
+               Shown when ggiitt--ppuusshh(1) rejects a forced update of a branch when its remote-tracking ref has updates that we do not have locally.
+
+           skippedCherryPicks
+               Shown when ggiitt--rreebbaassee(1) skips a commit that has already been cherry-picked onto the upstream branch.
+
+           statusAheadBehind
+               Shown when ggiitt--ssttaattuuss(1) computes the ahead/behind counts for a local ref compared to its remote tracking ref, and that calculation takes longer
+               than expected. Will not appear if ssttaattuuss..aahheeaaddBBeehhiinndd is false or the option ----nnoo--aahheeaadd--bbeehhiinndd is given.
+
+           statusHints
+               Show directions on how to proceed from the current state in the output of ggiitt--ssttaattuuss(1), in the template shown when writing commit messages in
+               ggiitt--ccoommmmiitt(1), and in the help message shown by ggiitt--sswwiittcchh(1) or ggiitt--cchheecckkoouutt(1) when switching branch.
+
+           statusUoption
+               Advise to consider using the --uu option to ggiitt--ssttaattuuss(1) when the command takes more than 2 seconds to enumerate untracked files.
+
+           commitBeforeMerge
+               Advice shown when ggiitt--mmeerrggee(1) refuses to merge to avoid overwriting local changes.
+
+           resetNoRefresh
+               Advice to consider using the ----nnoo--rreeffrreesshh option to ggiitt--rreesseett(1) when the command takes more than 2 seconds to refresh the index after reset.
+
+           resolveConflict
+               Advice shown by various commands when conflicts prevent the operation from being performed.
+
+           sequencerInUse
+               Advice shown when a sequencer command is already in progress.
+
+           implicitIdentity
+               Advice on how to set your identity configuration when your information is guessed from the system username and domain name.
+
+           detachedHead
+               Advice shown when you used ggiitt--sswwiittcchh(1) or ggiitt--cchheecckkoouutt(1) to move to the detach HEAD state, to instruct how to create a local branch after the
+               fact.
+
+           suggestDetachingHead
+               Advice shown when ggiitt--sswwiittcchh(1) refuses to detach HEAD without the explicit ----ddeettaacchh option.
+
+           checkoutAmbiguousRemoteBranchName
+               Advice shown when the argument to ggiitt--cchheecckkoouutt(1) and ggiitt--sswwiittcchh(1) ambiguously resolves to a remote tracking branch on more than one remote in
+               situations where an unambiguous argument would have otherwise caused a remote-tracking branch to be checked out. See the cchheecckkoouutt..ddeeffaauullttRReemmoottee
+               configuration variable for how to set a given remote to used by default in some situations where this advice would be printed.
+
+           amWorkDir
+               Advice that shows the location of the patch file when ggiitt--aamm(1) fails to apply it.
+
+           rmHints
+               In case of failure in the output of ggiitt--rrmm(1), show directions on how to proceed from the current state.
+
+           addEmbeddedRepo
+               Advice on what to do when you’ve accidentally added one git repo inside of another.
+
+           ignoredHook
+               Advice shown if a hook is ignored because the hook is not set as executable.
+
+           waitingForEditor
+               Print a message to the terminal whenever Git is waiting for editor input from the user.
+
+           nestedTag
+               Advice shown if a user attempts to recursively tag a tag object.
+
+           submoduleAlternateErrorStrategyDie
+               Advice shown when a submodule.alternateErrorStrategy option configured to "die" causes a fatal error.
+
+           submodulesNotUpdated
+               Advice shown when a user runs a submodule command that fails because ggiitt ssuubbmmoodduullee uuppddaattee ----iinniitt was not run.
+
+           addIgnoredFile
+               Advice shown if a user attempts to add an ignored file to the index.
+
+           addEmptyPathspec
+               Advice shown if a user runs the add command without providing the pathspec parameter.
+
+           updateSparsePath
+               Advice shown when either ggiitt--aadddd(1) or ggiitt--rrmm(1) is asked to update index entries outside the current sparse checkout.
+
+       core.fileMode
+           Tells Git if the executable bit of files in the working tree is to be honored.
+
+           Some filesystems lose the executable bit when a file that is marked as executable is checked out, or checks out a non-executable file with
+           executable bit on.  ggiitt--cclloonnee(1) or ggiitt--iinniitt(1) probe the filesystem to see if it handles the executable bit correctly and this variable is
+           automatically set as necessary.
+
+           A repository, however, may be on a filesystem that handles the filemode correctly, and this variable is set to _t_r_u_e when created, but later may be
+           made accessible from another environment that loses the filemode (e.g. exporting ext4 via CIFS mount, visiting a Cygwin created repository with Git
+           for Windows or Eclipse). In such a case it may be necessary to set this variable to _f_a_l_s_e. See ggiitt--uuppddaattee--iinnddeexx(1).
+
+           The default is true (when core.filemode is not specified in the config file).
+
+       core.hideDotFiles
+           (Windows-only) If true, mark newly-created directories and files whose name starts with a dot as hidden. If _d_o_t_G_i_t_O_n_l_y, only the ..ggiitt// directory is
+           hidden, but no other files starting with a dot. The default mode is _d_o_t_G_i_t_O_n_l_y.
+
+       core.ignoreCase
+           Internal variable which enables various workarounds to enable Git to work better on filesystems that are not case sensitive, like APFS, HFS+, FAT,
+           NTFS, etc. For example, if a directory listing finds "makefile" when Git expects "Makefile", Git will assume it is really the same file, and
+           continue to remember it as "Makefile".
+
+           The default is false, except ggiitt--cclloonnee(1) or ggiitt--iinniitt(1) will probe and set core.ignoreCase true if appropriate when the repository is created.
+
+           Git relies on the proper configuration of this variable for your operating and file system. Modifying this value may result in unexpected behavior.
+
+       core.precomposeUnicode
+           This option is only used by Mac OS implementation of Git. When core.precomposeUnicode=true, Git reverts the unicode decomposition of filenames done
+           by Mac OS. This is useful when sharing a repository between Mac OS and Linux or Windows. (Git for Windows 1.7.10 or higher is needed, or Git under
+           cygwin 1.7). When false, file names are handled fully transparent by Git, which is backward compatible with older versions of Git.
+
+       core.protectHFS
+           If set to true, do not allow checkout of paths that would be considered equivalent to ..ggiitt on an HFS+ filesystem. Defaults to ttrruuee on Mac OS, and
+           ffaallssee elsewhere.
+
+       core.protectNTFS
+           If set to true, do not allow checkout of paths that would cause problems with the NTFS filesystem, e.g. conflict with 8.3 "short" names. Defaults to
+           ttrruuee on Windows, and ffaallssee elsewhere.
+
+       core.fsmonitor
+           If set to true, enable the built-in file system monitor daemon for this working directory (ggiitt--ffssmmoonniittoorr----ddaaeemmoonn(1)).
+
+           Like hook-based file system monitors, the built-in file system monitor can speed up Git commands that need to refresh the Git index (e.g.  ggiitt
+           ssttaattuuss) in a working directory with many files. The built-in monitor eliminates the need to install and maintain an external third-party tool.
+
+           The built-in file system monitor is currently available only on a limited set of supported platforms. Currently, this includes Windows and MacOS.
+
+               Otherwise, this variable contains the pathname of the "fsmonitor"
+               hook command.
+
+           This hook command is used to identify all files that may have changed since the requested date/time. This information is used to speed up git by
+           avoiding unnecessary scanning of files that have not changed.
+
+           See the "fsmonitor-watchman" section of ggiitthhooookkss(5).
+
+           Note that if you concurrently use multiple versions of Git, such as one version on the command line and another version in an IDE tool, that the
+           definition of ccoorree..ffssmmoonniittoorr was extended to allow boolean values in addition to hook pathnames. Git versions 2.35.1 and prior will not understand
+           the boolean values and will consider the "true" or "false" values as hook pathnames to be invoked. Git versions 2.26 thru 2.35.1 default to hook
+           protocol V2 and will fall back to no fsmonitor (full scan). Git versions prior to 2.26 default to hook protocol V1 and will silently assume there
+           were no changes to report (no scan), so status commands may report incomplete results. For this reason, it is best to upgrade all of your Git
+           versions before using the built-in file system monitor.
+
+       core.fsmonitorHookVersion
+           Sets the protocol version to be used when invoking the "fsmonitor" hook.
+
+           There are currently versions 1 and 2. When this is not set, version 2 will be tried first and if it fails then version 1 will be tried. Version 1
+           uses a timestamp as input to determine which files have changes since that time but some monitors like Watchman have race conditions when used with
+           a timestamp. Version 2 uses an opaque string so that the monitor can return something that can be used to determine what files have changed without
+           race conditions.
+
+       core.trustctime
+           If false, the ctime differences between the index and the working tree are ignored; useful when the inode change time is regularly modified by
+           something outside Git (file system crawlers and some backup systems). See ggiitt--uuppddaattee--iinnddeexx(1). True by default.
+
+       core.splitIndex
+           If true, the split-index feature of the index will be used. See ggiitt--uuppddaattee--iinnddeexx(1). False by default.
+
+       core.untrackedCache
+           Determines what to do about the untracked cache feature of the index. It will be kept, if this variable is unset or set to kkeeeepp. It will
+           automatically be added if set to ttrruuee. And it will automatically be removed, if set to ffaallssee. Before setting it to ttrruuee, you should check that mtime
+           is working properly on your system. See ggiitt--uuppddaattee--iinnddeexx(1).  kkeeeepp by default, unless ffeeaattuurree..mmaannyyFFiilleess is enabled which sets this setting to ttrruuee
+           by default.
+
+       core.checkStat
+           When missing or is set to ddeeffaauulltt, many fields in the stat structure are checked to detect if a file has been modified since Git looked at it. When
+           this configuration variable is set to mmiinniimmaall, sub-second part of mtime and ctime, the uid and gid of the owner of the file, the inode number (and
+           the device number, if Git was compiled to use it), are excluded from the check among these fields, leaving only the whole-second part of mtime (and
+           ctime, if ccoorree..ttrruussttCCttiimmee is set) and the filesize to be checked.
+
+           There are implementations of Git that do not leave usable values in some fields (e.g. JGit); by excluding these fields from the comparison, the
+           mmiinniimmaall mode may help interoperability when the same repository is used by these other systems at the same time.
+
+       core.quotePath
+           Commands that output paths (e.g.  _l_s_-_f_i_l_e_s, _d_i_f_f), will quote "unusual" characters in the pathname by enclosing the pathname in double-quotes and
+           escaping those characters with backslashes in the same way C escapes control characters (e.g.  \\tt for TAB, \\nn for LF, \\\\ for backslash) or bytes
+           with values larger than 0x80 (e.g. octal \\330022\\226655 for "micro" in UTF-8). If this variable is set to false, bytes higher than 0x80 are not considered
+           "unusual" any more. Double-quotes, backslash and control characters are always escaped regardless of the setting of this variable. A simple space
+           character is not considered "unusual". Many commands can output pathnames completely verbatim using the --zz option. The default value is true.
+
+       core.eol
+           Sets the line ending type to use in the working directory for files that are marked as text (either by having the tteexxtt attribute set, or by having
+           tteexxtt==aauuttoo and Git auto-detecting the contents as text). Alternatives are _l_f, _c_r_l_f and _n_a_t_i_v_e, which uses the platform’s native line ending. The
+           default value is nnaattiivvee. See ggiittaattttrriibbuutteess(5) for more information on end-of-line conversion. Note that this value is ignored if ccoorree..aauuttooccrrllff is
+           set to ttrruuee or iinnppuutt.
+
+       core.safecrlf
+           If true, makes Git check if converting CCRRLLFF is reversible when end-of-line conversion is active. Git will verify if a command modifies a file in the
+           work tree either directly or indirectly. For example, committing a file followed by checking out the same file should yield the original file in the
+           work tree. If this is not the case for the current setting of ccoorree..aauuttooccrrllff, Git will reject the file. The variable can be set to "warn", in which
+           case Git will only warn about an irreversible conversion but continue the operation.
+
+           CRLF conversion bears a slight chance of corrupting data. When it is enabled, Git will convert CRLF to LF during commit and LF to CRLF during
+           checkout. A file that contains a mixture of LF and CRLF before the commit cannot be recreated by Git. For text files this is the right thing to do:
+           it corrects line endings such that we have only LF line endings in the repository. But for binary files that are accidentally classified as text the
+           conversion can corrupt data.
+
+           If you recognize such corruption early you can easily fix it by setting the conversion type explicitly in .gitattributes. Right after committing you
+           still have the original file in your work tree and this file is not yet corrupted. You can explicitly tell Git that this file is binary and Git will
+           handle the file appropriately.
+
+           Unfortunately, the desired effect of cleaning up text files with mixed line endings and the undesired effect of corrupting binary files cannot be
+           distinguished. In both cases CRLFs are removed in an irreversible way. For text files this is the right thing to do because CRLFs are line endings,
+           while for binary files converting CRLFs corrupts data.
+
+           Note, this safety check does not mean that a checkout will generate a file identical to the original file for a different setting of ccoorree..eeooll and
+           ccoorree..aauuttooccrrllff, but only for the current one. For example, a text file with LLFF would be accepted with ccoorree..eeooll==llff and could later be checked out with
+           ccoorree..eeooll==ccrrllff, in which case the resulting file would contain CCRRLLFF, although the original file contained LLFF. However, in both work trees the line
+           endings would be consistent, that is either all LLFF or all CCRRLLFF, but never mixed. A file with mixed line endings would be reported by the
+           ccoorree..ssaaffeeccrrllff mechanism.
+
+       core.autocrlf
+           Setting this variable to "true" is the same as setting the tteexxtt attribute to "auto" on all files and core.eol to "crlf". Set to true if you want to
+           have CCRRLLFF line endings in your working directory and the repository has LF line endings. This variable can be set to _i_n_p_u_t, in which case no output
+           conversion is performed.
+
+       core.checkRoundtripEncoding
+           A comma and/or whitespace separated list of encodings that Git performs UTF-8 round trip checks on if they are used in an wwoorrkkiinngg--ttrreeee--eennccooddiinngg
+           attribute (see ggiittaattttrriibbuutteess(5)). The default value is SSHHIIFFTT--JJIISS.
+
+       core.symlinks
+           If false, symbolic links are checked out as small plain files that contain the link text.  ggiitt--uuppddaattee--iinnddeexx(1) and ggiitt--aadddd(1) will not change the
+           recorded type to regular file. Useful on filesystems like FAT that do not support symbolic links.
+
+           The default is true, except ggiitt--cclloonnee(1) or ggiitt--iinniitt(1) will probe and set core.symlinks false if appropriate when the repository is created.
+
+       core.gitProxy
+           A "proxy command" to execute (as _c_o_m_m_a_n_d _h_o_s_t _p_o_r_t) instead of establishing direct connection to the remote server when using the Git protocol for
+           fetching. If the variable value is in the "COMMAND for DOMAIN" format, the command is applied only on hostnames ending with the specified domain
+           string. This variable may be set multiple times and is matched in the given order; the first match wins.
+
+           Can be overridden by the GGIITT__PPRROOXXYY__CCOOMMMMAANNDD environment variable (which always applies universally, without the special "for" handling).
+
+           The special string nnoonnee can be used as the proxy command to specify that no proxy be used for a given domain pattern. This is useful for excluding
+           servers inside a firewall from proxy use, while defaulting to a common proxy for external domains.
+
+       core.sshCommand
+           If this variable is set, ggiitt ffeettcchh and ggiitt ppuusshh will use the specified command instead of sssshh when they need to connect to a remote system. The
+           command is in the same form as the GGIITT__SSSSHH__CCOOMMMMAANNDD environment variable and is overridden when the environment variable is set.
+
+       core.ignoreStat
+           If true, Git will avoid using lstat() calls to detect if files have changed by setting the "assume-unchanged" bit for those tracked files which it
+           has updated identically in both the index and working tree.
+
+           When files are modified outside of Git, the user will need to stage the modified files explicitly (e.g. see _E_x_a_m_p_l_e_s section in ggiitt--uuppddaattee--
+           iinnddeexx(1)). Git will not normally detect changes to those files.
+
+           This is useful on systems where lstat() calls are very slow, such as CIFS/Microsoft Windows.
+
+           False by default.
+
+       core.preferSymlinkRefs
+           Instead of the default "symref" format for HEAD and other symbolic reference files, use symbolic links. This is sometimes needed to work with old
+           scripts that expect HEAD to be a symbolic link.
+
+       core.alternateRefsCommand
+           When advertising tips of available history from an alternate, use the shell to execute the specified command instead of ggiitt--ffoorr--eeaacchh--rreeff(1). The
+           first argument is the absolute path of the alternate. Output must contain one hex object id per line (i.e., the same as produced by ggiitt ffoorr--eeaacchh--rreeff
+           ----ffoorrmmaatt==''%%((oobbjjeeccttnnaammee))'').
+
+           Note that you cannot generally put ggiitt ffoorr--eeaacchh--rreeff directly into the config value, as it does not take a repository path as an argument (but you
+           can wrap the command above in a shell script).
+
+       core.alternateRefsPrefixes
+           When listing references from an alternate, list only references that begin with the given prefix. Prefixes match as if they were given as arguments
+           to ggiitt--ffoorr--eeaacchh--rreeff(1). To list multiple prefixes, separate them with whitespace. If ccoorree..aalltteerrnnaatteeRReeffssCCoommmmaanndd is set, setting
+           ccoorree..aalltteerrnnaatteeRReeffssPPrreeffiixxeess has no effect.
+
+       core.bare
+           If true this repository is assumed to be _b_a_r_e and has no working directory associated with it. If this is the case a number of commands that require
+           a working directory will be disabled, such as ggiitt--aadddd(1) or ggiitt--mmeerrggee(1).
+
+           This setting is automatically guessed by ggiitt--cclloonnee(1) or ggiitt--iinniitt(1) when the repository was created. By default a repository that ends in "/.git"
+           is assumed to be not bare (bare = false), while all other repositories are assumed to be bare (bare = true).
+
+       core.worktree
+           Set the path to the root of the working tree. If GGIITT__CCOOMMMMOONN__DDIIRR environment variable is set, core.worktree is ignored and not used for determining
+           the root of working tree. This can be overridden by the GGIITT__WWOORRKK__TTRREEEE environment variable and the ----wwoorrkk--ttrreeee command-line option. The value can be
+           an absolute path or relative to the path to the .git directory, which is either specified by --git-dir or GIT_DIR, or automatically discovered. If
+           --git-dir or GIT_DIR is specified but none of --work-tree, GIT_WORK_TREE and core.worktree is specified, the current working directory is regarded
+           as the top level of your working tree.
+
+           Note that this variable is honored even when set in a configuration file in a ".git" subdirectory of a directory and its value differs from the
+           latter directory (e.g. "/path/to/.git/config" has core.worktree set to "/different/path"), which is most likely a misconfiguration. Running Git
+           commands in the "/path/to" directory will still use "/different/path" as the root of the work tree and can cause confusion unless you know what you
+           are doing (e.g. you are creating a read-only snapshot of the same index to a location different from the repository’s usual working tree).
+
+       core.logAllRefUpdates
+           Enable the reflog. Updates to a ref <ref> is logged to the file "$$GGIITT__DDIIRR//llooggss//<<rreeff>>", by appending the new and old SHA-1, the date/time and the
+           reason of the update, but only when the file exists. If this configuration variable is set to ttrruuee, missing "$$GGIITT__DDIIRR//llooggss//<<rreeff>>" file is
+           automatically created for branch heads (i.e. under rreeffss//hheeaaddss//), remote refs (i.e. under rreeffss//rreemmootteess//), note refs (i.e. under rreeffss//nnootteess//), and the
+           symbolic ref HHEEAADD. If it is set to aallwwaayyss, then a missing reflog is automatically created for any ref under rreeffss//.
+
+           This information can be used to determine what commit was the tip of a branch "2 days ago".
+
+           This value is true by default in a repository that has a working directory associated with it, and false by default in a bare repository.
+
+       core.repositoryFormatVersion
+           Internal variable identifying the repository format and layout version.
+
+       core.sharedRepository
+           When _g_r_o_u_p (or _t_r_u_e), the repository is made shareable between several users in a group (making sure all the files and objects are group-writable).
+           When _a_l_l (or _w_o_r_l_d or _e_v_e_r_y_b_o_d_y), the repository will be readable by all users, additionally to being group-shareable. When _u_m_a_s_k (or _f_a_l_s_e), Git
+           will use permissions reported by umask(2). When _0_x_x_x, where _0_x_x_x is an octal number, files in the repository will have this mode value.  _0_x_x_x will
+           override user’s umask value (whereas the other options will only override requested parts of the user’s umask value). Examples: _0_6_6_0 will make the
+           repo read/write-able for the owner and group, but inaccessible to others (equivalent to _g_r_o_u_p unless umask is e.g.  _0_0_2_2).  _0_6_4_0 is a repository
+           that is group-readable but not group-writable. See ggiitt--iinniitt(1). False by default.
+
+       core.warnAmbiguousRefs
+           If true, Git will warn you if the ref name you passed it is ambiguous and might match multiple refs in the repository. True by default.
+
+       core.compression
+           An integer -1..9, indicating a default compression level. -1 is the zlib default. 0 means no compression, and 1..9 are various speed/size tradeoffs,
+           9 being slowest. If set, this provides a default to other compression variables, such as ccoorree..lloooosseeCCoommpprreessssiioonn and ppaacckk..ccoommpprreessssiioonn.
+
+       core.looseCompression
+           An integer -1..9, indicating the compression level for objects that are not in a pack file. -1 is the zlib default. 0 means no compression, and 1..9
+           are various speed/size tradeoffs, 9 being slowest. If not set, defaults to core.compression. If that is not set, defaults to 1 (best speed).
+
+       core.packedGitWindowSize
+           Number of bytes of a pack file to map into memory in a single mapping operation. Larger window sizes may allow your system to process a smaller
+           number of large pack files more quickly. Smaller window sizes will negatively affect performance due to increased calls to the operating system’s
+           memory manager, but may improve performance when accessing a large number of large pack files.
+
+           Default is 1 MiB if NO_MMAP was set at compile time, otherwise 32 MiB on 32 bit platforms and 1 GiB on 64 bit platforms. This should be reasonable
+           for all users/operating systems. You probably do not need to adjust this value.
+
+           Common unit suffixes of _k, _m, or _g are supported.
+
+       core.packedGitLimit
+           Maximum number of bytes to map simultaneously into memory from pack files. If Git needs to access more than this many bytes at once to complete an
+           operation it will unmap existing regions to reclaim virtual address space within the process.
+
+           Default is 256 MiB on 32 bit platforms and 32 TiB (effectively unlimited) on 64 bit platforms. This should be reasonable for all users/operating
+           systems, except on the largest projects. You probably do not need to adjust this value.
+
+           Common unit suffixes of _k, _m, or _g are supported.
+
+       core.deltaBaseCacheLimit
+           Maximum number of bytes per thread to reserve for caching base objects that may be referenced by multiple deltified objects. By storing the entire
+           decompressed base objects in a cache Git is able to avoid unpacking and decompressing frequently used base objects multiple times.
+
+           Default is 96 MiB on all platforms. This should be reasonable for all users/operating systems, except on the largest projects. You probably do not
+           need to adjust this value.
+
+           Common unit suffixes of _k, _m, or _g are supported.
+
+       core.bigFileThreshold
+           Files larger than this size are stored deflated, without attempting delta compression. Storing large files without delta compression avoids
+           excessive memory usage, at the slight expense of increased disk usage. Additionally files larger than this size are always treated as binary.
+
+           Default is 512 MiB on all platforms. This should be reasonable for most projects as source code and other text files can still be delta compressed,
+           but larger binary media files won’t be.
+
+           Common unit suffixes of _k, _m, or _g are supported.
+
+       core.excludesFile
+           Specifies the pathname to the file that contains patterns to describe paths that are not meant to be tracked, in addition to ..ggiittiiggnnoorree
+           (per-directory) and ..ggiitt//iinnffoo//eexxcclluuddee. Defaults to $$XXDDGG__CCOONNFFIIGG__HHOOMMEE//ggiitt//iiggnnoorree. If $$XXDDGG__CCOONNFFIIGG__HHOOMMEE is either not set or empty,
+           $$HHOOMMEE//..ccoonnffiigg//ggiitt//iiggnnoorree is used instead. See ggiittiiggnnoorree(5).
+
+       core.askPass
+           Some commands (e.g. svn and http interfaces) that interactively ask for a password can be told to use an external program given via the value of
+           this variable. Can be overridden by the GGIITT__AASSKKPPAASSSS environment variable. If not set, fall back to the value of the SSSSHH__AASSKKPPAASSSS environment variable
+           or, failing that, a simple password prompt. The external program shall be given a suitable prompt as command-line argument and write the password on
+           its STDOUT.
+
+       core.attributesFile
+           In addition to ..ggiittaattttrriibbuutteess (per-directory) and ..ggiitt//iinnffoo//aattttrriibbuutteess, Git looks into this file for attributes (see ggiittaattttrriibbuutteess(5)). Path
+           expansions are made the same way as for ccoorree..eexxcclluuddeessFFiillee. Its default value is $$XXDDGG__CCOONNFFIIGG__HHOOMMEE//ggiitt//aattttrriibbuutteess. If $$XXDDGG__CCOONNFFIIGG__HHOOMMEE is either not
+           set or empty, $$HHOOMMEE//..ccoonnffiigg//ggiitt//aattttrriibbuutteess is used instead.
+
+       core.hooksPath
+           By default Git will look for your hooks in the $$GGIITT__DDIIRR//hhooookkss directory. Set this to different path, e.g.  //eettcc//ggiitt//hhooookkss, and Git will try to find
+           your hooks in that directory, e.g.  //eettcc//ggiitt//hhooookkss//pprree--rreecceeiivvee instead of in $$GGIITT__DDIIRR//hhooookkss//pprree--rreecceeiivvee.
+
+           The path can be either absolute or relative. A relative path is taken as relative to the directory where the hooks are run (see the "DESCRIPTION"
+           section of ggiitthhooookkss(5)).
+
+           This configuration variable is useful in cases where you’d like to centrally configure your Git hooks instead of configuring them on a
+           per-repository basis, or as a more flexible and centralized alternative to having an iinniitt..tteemmppllaatteeDDiirr where you’ve changed default hooks.
+
+       core.editor
+           Commands such as ccoommmmiitt and ttaagg that let you edit messages by launching an editor use the value of this variable when it is set, and the environment
+           variable GGIITT__EEDDIITTOORR is not set. See ggiitt--vvaarr(1).
+
+       core.commentChar
+           Commands such as ccoommmmiitt and ttaagg that let you edit messages consider a line that begins with this character commented, and removes them after the
+           editor returns (default _#).
+
+           If set to "auto", ggiitt--ccoommmmiitt would select a character that is not the beginning character of any line in existing commit messages.
+
+       core.filesRefLockTimeout
+           The length of time, in milliseconds, to retry when trying to lock an individual reference. Value 0 means not to retry at all; -1 means to try
+           indefinitely. Default is 100 (i.e., retry for 100ms).
+
+       core.packedRefsTimeout
+           The length of time, in milliseconds, to retry when trying to lock the ppaacckkeedd--rreeffss file. Value 0 means not to retry at all; -1 means to try
+           indefinitely. Default is 1000 (i.e., retry for 1 second).
+
+       core.pager
+           Text viewer for use by Git commands (e.g., _l_e_s_s). The value is meant to be interpreted by the shell. The order of preference is the $$GGIITT__PPAAGGEERR
+           environment variable, then ccoorree..ppaaggeerr configuration, then $$PPAAGGEERR, and then the default chosen at compile time (usually _l_e_s_s).
+
+           When the LLEESSSS environment variable is unset, Git sets it to FFRRXX (if LLEESSSS environment variable is set, Git does not change it at all). If you want to
+           selectively override Git’s default setting for LLEESSSS, you can set ccoorree..ppaaggeerr to e.g.  lleessss --SS. This will be passed to the shell by Git, which will
+           translate the final command to LLEESSSS==FFRRXX lleessss --SS. The environment does not set the SS option but the command line does, instructing less to truncate
+           long lines. Similarly, setting ccoorree..ppaaggeerr to lleessss --++FF will deactivate the FF option specified by the environment from the command-line, deactivating
+           the "quit if one screen" behavior of lleessss. One can specifically activate some flags for particular commands: for example, setting ppaaggeerr..bbllaammee to
+           lleessss --SS enables line truncation only for ggiitt bbllaammee.
+
+           Likewise, when the LLVV environment variable is unset, Git sets it to --cc. You can override this setting by exporting LLVV with another value or setting
+           ccoorree..ppaaggeerr to llvv ++cc.
+
+       core.whitespace
+           A comma separated list of common whitespace problems to notice.  _g_i_t _d_i_f_f will use ccoolloorr..ddiiffff..wwhhiitteessppaaccee to highlight them, and _g_i_t _a_p_p_l_y
+           _-_-_w_h_i_t_e_s_p_a_c_e_=_e_r_r_o_r will consider them as errors. You can prefix -- to disable any of them (e.g.  --ttrraaiilliinngg--ssppaaccee):
+
+           •   bbllaannkk--aatt--eeooll treats trailing whitespaces at the end of the line as an error (enabled by default).
+
+           •   ssppaaccee--bbeeffoorree--ttaabb treats a space character that appears immediately before a tab character in the initial indent part of the line as an error
+               (enabled by default).
+
+           •   iinnddeenntt--wwiitthh--nnoonn--ttaabb treats a line that is indented with space characters instead of the equivalent tabs as an error (not enabled by default).
+
+           •   ttaabb--iinn--iinnddeenntt treats a tab character in the initial indent part of the line as an error (not enabled by default).
+
+           •   bbllaannkk--aatt--eeooff treats blank lines added at the end of file as an error (enabled by default).
+
+           •   ttrraaiilliinngg--ssppaaccee is a short-hand to cover both bbllaannkk--aatt--eeooll and bbllaannkk--aatt--eeooff.
+
+           •   ccrr--aatt--eeooll treats a carriage-return at the end of line as part of the line terminator, i.e. with it, ttrraaiilliinngg--ssppaaccee does not trigger if the
+               character before such a carriage-return is not a whitespace (not enabled by default).
+
+           •   ttaabbwwiiddtthh==<<nn>> tells how many character positions a tab occupies; this is relevant for iinnddeenntt--wwiitthh--nnoonn--ttaabb and when Git fixes ttaabb--iinn--iinnddeenntt
+               errors. The default tab width is 8. Allowed values are 1 to 63.
+
+       core.fsync
+           A comma-separated list of components of the repository that should be hardened via the core.fsyncMethod when created or modified. You can disable
+           hardening of any component by prefixing it with a _-. Items that are not hardened may be lost in the event of an unclean system shutdown. Unless you
+           have special requirements, it is recommended that you leave this option empty or pick one of ccoommmmiitttteedd, aaddddeedd, or aallll.
+
+           When this configuration is encountered, the set of components starts with the platform default value, disabled components are removed, and
+           additional components are added.  nnoonnee resets the state so that the platform default is ignored.
+
+           The empty string resets the fsync configuration to the platform default. The default on most platforms is equivalent to
+           ccoorree..ffssyynncc==ccoommmmiitttteedd,,--lloooossee--oobbjjeecctt, which has good performance, but risks losing recent work in the event of an unclean system shutdown.
+
+           •   nnoonnee clears the set of fsynced components.
+
+           •   lloooossee--oobbjjeecctt hardens objects added to the repo in loose-object form.
+
+           •   ppaacckk hardens objects added to the repo in packfile form.
+
+           •   ppaacckk--mmeettaaddaattaa hardens packfile bitmaps and indexes.
+
+           •   ccoommmmiitt--ggrraapphh hardens the commit graph file.
+
+           •   iinnddeexx hardens the index when it is modified.
+
+           •   oobbjjeeccttss is an aggregate option that is equivalent to lloooossee--oobbjjeecctt,,ppaacckk.
+
+           •   rreeffeerreennccee hardens references modified in the repo.
+
+           •   ddeerriivveedd--mmeettaaddaattaa is an aggregate option that is equivalent to ppaacckk--mmeettaaddaattaa,,ccoommmmiitt--ggrraapphh.
+
+           •   ccoommmmiitttteedd is an aggregate option that is currently equivalent to oobbjjeeccttss. This mode sacrifices some performance to ensure that work that is
+               committed to the repository with ggiitt ccoommmmiitt or similar commands is hardened.
+
+           •   aaddddeedd is an aggregate option that is currently equivalent to ccoommmmiitttteedd,,iinnddeexx. This mode sacrifices additional performance to ensure that the
+               results of commands like ggiitt aadddd and similar operations are hardened.
+
+           •   aallll is an aggregate option that syncs all individual components above.
+
+       core.fsyncMethod
+           A value indicating the strategy Git will use to harden repository data using fsync and related primitives.
+
+           •   ffssyynncc uses the fsync() system call or platform equivalents.
+
+           •   wwrriitteeoouutt--oonnllyy issues pagecache writeback requests, but depending on the filesystem and storage hardware, data added to the repository may not be
+               durable in the event of a system crash. This is the default mode on macOS.
+
+           •   bbaattcchh enables a mode that uses writeout-only flushes to stage multiple updates in the disk writeback cache and then does a single full fsync of
+               a dummy file to trigger the disk cache flush at the end of the operation.
+
+               Currently bbaattcchh mode only applies to loose-object files. Other repository data is made durable as if ffssyynncc was specified. This mode is expected
+               to be as safe as ffssyynncc on macOS for repos stored on HFS+ or APFS filesystems and on Windows for repos stored on NTFS or ReFS filesystems.
+
+       core.fsyncObjectFiles
+           This boolean will enable _f_s_y_n_c_(_) when writing object files. This setting is deprecated. Use core.fsync instead.
+
+           This setting affects data added to the Git repository in loose-object form. When set to true, Git will issue an fsync or similar system call to
+           flush caches so that loose-objects remain consistent in the face of a unclean system shutdown.
+
+       core.preloadIndex
+           Enable parallel index preload for operations like _g_i_t _d_i_f_f
+
+           This can speed up operations like _g_i_t _d_i_f_f and _g_i_t _s_t_a_t_u_s especially on filesystems like NFS that have weak caching semantics and thus relatively
+           high IO latencies. When enabled, Git will do the index comparison to the filesystem data in parallel, allowing overlapping IO’s. Defaults to true.
+
+       core.unsetenvvars
+           Windows-only: comma-separated list of environment variables' names that need to be unset before spawning any other process. Defaults to PPEERRLL55LLIIBB to
+           account for the fact that Git for Windows insists on using its own Perl interpreter.
+
+       core.restrictinheritedhandles
+           Windows-only: override whether spawned processes inherit only standard file handles (ssttddiinn, ssttddoouutt and ssttddeerrrr) or all handles. Can be aauuttoo, ttrruuee or
+           ffaallssee. Defaults to aauuttoo, which means ttrruuee on Windows 7 and later, and ffaallssee on older Windows versions.
+
+       core.createObject
+           You can set this to _l_i_n_k, in which case a hardlink followed by a delete of the source are used to make sure that object creation will not overwrite
+           existing objects.
+
+           On some file system/operating system combinations, this is unreliable. Set this config setting to _r_e_n_a_m_e there; However, This will remove the check
+           that makes sure that existing object files will not get overwritten.
+
+       core.notesRef
+           When showing commit messages, also show notes which are stored in the given ref. The ref must be fully qualified. If the given ref does not exist,
+           it is not an error but means that no notes should be printed.
+
+           This setting defaults to "refs/notes/commits", and it can be overridden by the GGIITT__NNOOTTEESS__RREEFF environment variable. See ggiitt--nnootteess(1).
+
+       core.commitGraph
+           If true, then git will read the commit-graph file (if it exists) to parse the graph structure of commits. Defaults to true. See ggiitt--ccoommmmiitt--ggrraapphh(1)
+           for more information.
+
+       core.useReplaceRefs
+           If set to ffaallssee, behave as if the ----nnoo--rreeppllaaccee--oobbjjeeccttss option was given on the command line. See ggiitt(1) and ggiitt--rreeppllaaccee(1) for more information.
+
+       core.multiPackIndex
+           Use the multi-pack-index file to track multiple packfiles using a single index. See ggiitt--mmuullttii--ppaacckk--iinnddeexx(1) for more information. Defaults to true.
+
+       core.sparseCheckout
+           Enable "sparse checkout" feature. See ggiitt--ssppaarrssee--cchheecckkoouutt(1) for more information.
+
+       core.sparseCheckoutCone
+           Enables the "cone mode" of the sparse checkout feature. When the sparse-checkout file contains a limited set of patterns, this mode provides
+           significant performance advantages. The "non cone mode" can be requested to allow specifying a more flexible patterns by setting this variable to
+           _f_a_l_s_e. See ggiitt--ssppaarrssee--cchheecckkoouutt(1) for more information.
+
+       core.abbrev
+           Set the length object names are abbreviated to. If unspecified or set to "auto", an appropriate value is computed based on the approximate number of
+           packed objects in your repository, which hopefully is enough for abbreviated object names to stay unique for some time. If set to "no", no
+           abbreviation is made and the object names are shown in their full length. The minimum length is 4.
+
+       add.ignoreErrors, add.ignore-errors (deprecated)
+           Tells _g_i_t _a_d_d to continue adding files when some files cannot be added due to indexing errors. Equivalent to the ----iiggnnoorree--eerrrroorrss option of ggiitt--
+           aadddd(1).  aadddd..iiggnnoorree--eerrrroorrss is deprecated, as it does not follow the usual naming convention for configuration variables.
+
+       add.interactive.useBuiltin
+           Set to ffaallssee to fall back to the original Perl implementation of the interactive version of ggiitt--aadddd(1) instead of the built-in version. Is ttrruuee by
+           default.
+
+       alias.*
+           Command aliases for the ggiitt(1) command wrapper - e.g. after defining aalliiaass..llaasstt == ccaatt--ffiillee ccoommmmiitt HHEEAADD, the invocation ggiitt llaasstt is equivalent to ggiitt
+           ccaatt--ffiillee ccoommmmiitt HHEEAADD. To avoid confusion and troubles with script usage, aliases that hide existing Git commands are ignored. Arguments are split by
+           spaces, the usual shell quoting and escaping is supported. A quote pair or a backslash can be used to quote them.
+
+           Note that the first word of an alias does not necessarily have to be a command. It can be a command-line option that will be passed into the
+           invocation of ggiitt. In particular, this is useful when used with --cc to pass in one-time configurations or --pp to force pagination. For example,
+           lloouudd--rreebbaassee == --cc ccoommmmiitt..vveerrbboossee==ttrruuee rreebbaassee can be defined such that running ggiitt lloouudd--rreebbaassee would be equivalent to ggiitt --cc ccoommmmiitt..vveerrbboossee==ttrruuee
+           rreebbaassee. Also, ppss == --pp ssttaattuuss would be a helpful alias since ggiitt ppss would paginate the output of ggiitt ssttaattuuss where the original command does not.
+
+           If the alias expansion is prefixed with an exclamation point, it will be treated as a shell command. For example, defining aalliiaass..nneeww == !!ggiittkk ----aallll
+           ----nnoott OORRIIGG__HHEEAADD, the invocation ggiitt nneeww is equivalent to running the shell command ggiittkk ----aallll ----nnoott OORRIIGG__HHEEAADD. Note that shell commands will be
+           executed from the top-level directory of a repository, which may not necessarily be the current directory.  GGIITT__PPRREEFFIIXX is set as returned by running
+           ggiitt rreevv--ppaarrssee ----sshhooww--pprreeffiixx from the original current directory. See ggiitt--rreevv--ppaarrssee(1).
+
+       am.keepcr
+           If true, git-am will call git-mailsplit for patches in mbox format with parameter ----kkeeeepp--ccrr. In this case git-mailsplit will not remove \\rr from
+           lines ending with \\rr\\nn. Can be overridden by giving ----nnoo--kkeeeepp--ccrr from the command line. See ggiitt--aamm(1), ggiitt--mmaaiillsspplliitt(1).
+
+       am.threeWay
+           By default, ggiitt aamm will fail if the patch does not apply cleanly. When set to true, this setting tells ggiitt aamm to fall back on 3-way merge if the
+           patch records the identity of blobs it is supposed to apply to and we have those blobs available locally (equivalent to giving the ----33wwaayy option
+           from the command line). Defaults to ffaallssee. See ggiitt--aamm(1).
+
+       apply.ignoreWhitespace
+           When set to _c_h_a_n_g_e, tells _g_i_t _a_p_p_l_y to ignore changes in whitespace, in the same way as the ----iiggnnoorree--ssppaaccee--cchhaannggee option. When set to one of: no,
+           none, never, false tells _g_i_t _a_p_p_l_y to respect all whitespace differences. See ggiitt--aappppllyy(1).
+
+       apply.whitespace
+           Tells _g_i_t _a_p_p_l_y how to handle whitespaces, in the same way as the ----wwhhiitteessppaaccee option. See ggiitt--aappppllyy(1).
+
+       blame.blankBoundary
+           Show blank commit object name for boundary commits in ggiitt--bbllaammee(1). This option defaults to false.
+
+       blame.coloring
+           This determines the coloring scheme to be applied to blame output. It can be _r_e_p_e_a_t_e_d_L_i_n_e_s, _h_i_g_h_l_i_g_h_t_R_e_c_e_n_t, or _n_o_n_e which is the default.
+
+       blame.date
+           Specifies the format used to output dates in ggiitt--bbllaammee(1). If unset the iso format is used. For supported values, see the discussion of the ----ddaattee
+           option at ggiitt--lloogg(1).
+
+       blame.showEmail
+           Show the author email instead of author name in ggiitt--bbllaammee(1). This option defaults to false.
+
+       blame.showRoot
+           Do not treat root commits as boundaries in ggiitt--bbllaammee(1). This option defaults to false.
+
+       blame.ignoreRevsFile
+           Ignore revisions listed in the file, one unabbreviated object name per line, in ggiitt--bbllaammee(1). Whitespace and comments beginning with ## are ignored.
+           This option may be repeated multiple times. Empty file names will reset the list of ignored revisions. This option will be handled before the
+           command line option ----iiggnnoorree--rreevvss--ffiillee.
+
+       blame.markUnblamableLines
+           Mark lines that were changed by an ignored revision that we could not attribute to another commit with a _* in the output of ggiitt--bbllaammee(1).
+
+       blame.markIgnoredLines
+           Mark lines that were changed by an ignored revision that we attributed to another commit with a _? in the output of ggiitt--bbllaammee(1).
+
+       branch.autoSetupMerge
+           Tells _g_i_t _b_r_a_n_c_h, _g_i_t _s_w_i_t_c_h and _g_i_t _c_h_e_c_k_o_u_t to set up new branches so that ggiitt--ppuullll(1) will appropriately merge from the starting point branch.
+           Note that even if this option is not set, this behavior can be chosen per-branch using the ----ttrraacckk and ----nnoo--ttrraacckk options. The valid settings are:
+           ffaallssee — no automatic setup is done; ttrruuee — automatic setup is done when the starting point is a remote-tracking branch; aallwwaayyss —  automatic setup is
+           done when the starting point is either a local branch or remote-tracking branch; iinnhheerriitt — if the starting point has a tracking configuration, it is
+           copied to the new branch; ssiimmppllee — automatic setup is done only when the starting point is a remote-tracking branch and the new branch has the same
+           name as the remote branch. This option defaults to true.
+
+       branch.autoSetupRebase
+           When a new branch is created with _g_i_t _b_r_a_n_c_h, _g_i_t _s_w_i_t_c_h or _g_i_t _c_h_e_c_k_o_u_t that tracks another branch, this variable tells Git to set up pull to
+           rebase instead of merge (see "branch.<name>.rebase"). When nneevveerr, rebase is never automatically set to true. When llooccaall, rebase is set to true for
+           tracked branches of other local branches. When rreemmoottee, rebase is set to true for tracked branches of remote-tracking branches. When aallwwaayyss, rebase
+           will be set to true for all tracking branches. See "branch.autoSetupMerge" for details on how to set up a branch to track another branch. This
+           option defaults to never.
+
+       branch.sort
+           This variable controls the sort ordering of branches when displayed by ggiitt--bbrraanncchh(1). Without the "--sort=<value>" option provided, the value of
+           this variable will be used as the default. See ggiitt--ffoorr--eeaacchh--rreeff(1) field names for valid values.
+
+       branch.<name>.remote
+           When on branch <name>, it tells _g_i_t _f_e_t_c_h and _g_i_t _p_u_s_h which remote to fetch from/push to. The remote to push to may be overridden with
+           rreemmoottee..ppuusshhDDeeffaauulltt (for all branches). The remote to push to, for the current branch, may be further overridden by bbrraanncchh..<<nnaammee>>..ppuusshhRReemmoottee. If no
+           remote is configured, or if you are not on any branch and there is more than one remote defined in the repository, it defaults to oorriiggiinn for
+           fetching and rreemmoottee..ppuusshhDDeeffaauulltt for pushing. Additionally, .. (a period) is the current local repository (a dot-repository), see
+           bbrraanncchh..<<nnaammee>>..mmeerrggee's final note below.
+
+       branch.<name>.pushRemote
+           When on branch <name>, it overrides bbrraanncchh..<<nnaammee>>..rreemmoottee for pushing. It also overrides rreemmoottee..ppuusshhDDeeffaauulltt for pushing from branch <name>. When you
+           pull from one place (e.g. your upstream) and push to another place (e.g. your own publishing repository), you would want to set rreemmoottee..ppuusshhDDeeffaauulltt
+           to specify the remote to push to for all branches, and use this option to override it for a specific branch.
+
+       branch.<name>.merge
+           Defines, together with branch.<name>.remote, the upstream branch for the given branch. It tells _g_i_t _f_e_t_c_h/_g_i_t _p_u_l_l/_g_i_t _r_e_b_a_s_e which branch to merge
+           and can also affect _g_i_t _p_u_s_h (see push.default). When in branch <name>, it tells _g_i_t _f_e_t_c_h the default refspec to be marked for merging in
+           FETCH_HEAD. The value is handled like the remote part of a refspec, and must match a ref which is fetched from the remote given by
+           "branch.<name>.remote". The merge information is used by _g_i_t _p_u_l_l (which at first calls _g_i_t _f_e_t_c_h) to lookup the default branch for merging. Without
+           this option, _g_i_t _p_u_l_l defaults to merge the first refspec fetched. Specify multiple values to get an octopus merge. If you wish to setup _g_i_t _p_u_l_l so
+           that it merges into <name> from another branch in the local repository, you can point branch.<name>.merge to the desired branch, and use the
+           relative path setting .. (a period) for branch.<name>.remote.
+
+       branch.<name>.mergeOptions
+           Sets default options for merging into branch <name>. The syntax and supported options are the same as those of ggiitt--mmeerrggee(1), but option values
+           containing whitespace characters are currently not supported.
+
+       branch.<name>.rebase
+           When true, rebase the branch <name> on top of the fetched branch, instead of merging the default branch from the default remote when "git pull" is
+           run. See "pull.rebase" for doing this in a non branch-specific manner.
+
+           When mmeerrggeess (or just _m), pass the ----rreebbaassee--mmeerrggeess option to _g_i_t _r_e_b_a_s_e so that the local merge commits are included in the rebase (see ggiitt--rreebbaassee(1)
+           for details).
+
+           When the value is iinntteerraaccttiivvee (or just _i), the rebase is run in interactive mode.
+
+           NNOOTTEE: this is a possibly dangerous operation; do nnoott use it unless you understand the implications (see ggiitt--rreebbaassee(1) for details).
+
+       branch.<name>.description
+           Branch description, can be edited with ggiitt bbrraanncchh ----eeddiitt--ddeessccrriippttiioonn. Branch description is automatically added in the format-patch cover letter or
+           request-pull summary.
+
+       browser.<tool>.cmd
+           Specify the command to invoke the specified browser. The specified command is evaluated in shell with the URLs passed as arguments. (See ggiitt--
+           wweebb----bbrroowwssee(1).)
+
+       browser.<tool>.path
+           Override the path for the given tool that may be used to browse HTML help (see --ww option in ggiitt--hheellpp(1)) or a working repository in gitweb (see ggiitt--
+           iinnssttaawweebb(1)).
+
+       checkout.defaultRemote
+           When you run ggiitt cchheecckkoouutt <<ssoommeetthhiinngg>> or ggiitt sswwiittcchh <<ssoommeetthhiinngg>> and only have one remote, it may implicitly fall back on checking out and tracking
+           e.g.  oorriiggiinn//<<ssoommeetthhiinngg>>. This stops working as soon as you have more than one remote with a <<ssoommeetthhiinngg>> reference. This setting allows for setting
+           the name of a preferred remote that should always win when it comes to disambiguation. The typical use-case is to set this to oorriiggiinn.
+
+           Currently this is used by ggiitt--sswwiittcchh(1) and ggiitt--cchheecckkoouutt(1) when ggiitt cchheecckkoouutt <<ssoommeetthhiinngg>> or ggiitt sswwiittcchh <<ssoommeetthhiinngg>> will checkout the <<ssoommeetthhiinngg>>
+           branch on another remote, and by ggiitt--wwoorrkkttrreeee(1) when ggiitt wwoorrkkttrreeee aadddd refers to a remote branch. This setting might be used for other checkout-like
+           commands or functionality in the future.
+
+       checkout.guess
+           Provides the default value for the ----gguueessss or ----nnoo--gguueessss option in ggiitt cchheecckkoouutt and ggiitt sswwiittcchh. See ggiitt--sswwiittcchh(1) and ggiitt--cchheecckkoouutt(1).
+
+       checkout.workers
+           The number of parallel workers to use when updating the working tree. The default is one, i.e. sequential execution. If set to a value less than
+           one, Git will use as many workers as the number of logical cores available. This setting and cchheecckkoouutt..tthhrreesshhoollddFFoorrPPaarraalllleelliissmm affect all commands
+           that perform checkout. E.g. checkout, clone, reset, sparse-checkout, etc.
+
+           Note: parallel checkout usually delivers better performance for repositories located on SSDs or over NFS. For repositories on spinning disks and/or
+           machines with a small number of cores, the default sequential checkout often performs better. The size and compression level of a repository might
+           also influence how well the parallel version performs.
+
+       checkout.thresholdForParallelism
+           When running parallel checkout with a small number of files, the cost of subprocess spawning and inter-process communication might outweigh the
+           parallelization gains. This setting allows to define the minimum number of files for which parallel checkout should be attempted. The default is
+           100.
+
+       clean.requireForce
+           A boolean to make git-clean do nothing unless given -f, -i or -n. Defaults to true.
+
+       clone.defaultRemoteName
+           The name of the remote to create when cloning a repository. Defaults to oorriiggiinn, and can be overridden by passing the ----oorriiggiinn command-line option to
+           ggiitt--cclloonnee(1).
+
+       clone.rejectShallow
+           Reject to clone a repository if it is a shallow one, can be overridden by passing option ----rreejjeecctt--sshhaallllooww in command line. See ggiitt--cclloonnee(1)
+
+       clone.filterSubmodules
+           If a partial clone filter is provided (see ----ffiilltteerr in ggiitt--rreevv--lliisstt(1)) and ----rreeccuurrssee--ssuubbmmoodduulleess is used, also apply the filter to submodules.
+
+       color.advice
+           A boolean to enable/disable color in hints (e.g. when a push failed, see aaddvviiccee..** for a list). May be set to aallwwaayyss, ffaallssee (or nneevveerr) or aauuttoo (or
+           ttrruuee), in which case colors are used only when the error output goes to a terminal. If unset, then the value of ccoolloorr..uuii is used (aauuttoo by default).
+
+       color.advice.hint
+           Use customized color for hints.
+
+       color.blame.highlightRecent
+           Specify the line annotation color for ggiitt bbllaammee ----ccoolloorr--bbyy--aaggee depending upon the age of the line.
+
+           This setting should be set to a comma-separated list of color and date settings, starting and ending with a color, the dates should be set from
+           oldest to newest. The metadata will be colored with the specified colors if the line was introduced before the given timestamp, overwriting older
+           timestamped colors.
+
+           Instead of an absolute timestamp relative timestamps work as well, e.g.  22..wweeeekkss..aaggoo is valid to address anything older than 2 weeks.
+
+           It defaults to bblluuee,,1122 mmoonntthh aaggoo,,wwhhiittee,,11 mmoonntthh aaggoo,,rreedd, which colors everything older than one year blue, recent changes between one month and one
+           year old are kept white, and lines introduced within the last month are colored red.
+
+       color.blame.repeatedLines
+           Use the specified color to colorize line annotations for ggiitt bbllaammee ----ccoolloorr--lliinneess, if they come from the same commit as the preceding line. Defaults
+           to cyan.
+
+       color.branch
+           A boolean to enable/disable color in the output of ggiitt--bbrraanncchh(1). May be set to aallwwaayyss, ffaallssee (or nneevveerr) or aauuttoo (or ttrruuee), in which case colors are
+           used only when the output is to a terminal. If unset, then the value of ccoolloorr..uuii is used (aauuttoo by default).
+
+       color.branch.<slot>
+           Use customized color for branch coloration.  <<sslloott>> is one of ccuurrrreenntt (the current branch), llooccaall (a local branch), rreemmoottee (a remote-tracking branch
+           in refs/remotes/), uuppssttrreeaamm (upstream tracking branch), ppllaaiinn (other refs).
+
+       color.diff
+           Whether to use ANSI escape sequences to add color to patches. If this is set to aallwwaayyss, ggiitt--ddiiffff(1), ggiitt--lloogg(1), and ggiitt--sshhooww(1) will use color for
+           all patches. If it is set to ttrruuee or aauuttoo, those commands will only use color when output is to the terminal. If unset, then the value of ccoolloorr..uuii
+           is used (aauuttoo by default).
+
+           This does not affect ggiitt--ffoorrmmaatt--ppaattcchh(1) or the _g_i_t_-_d_i_f_f_-_* plumbing commands. Can be overridden on the command line with the ----ccoolloorr[[==<<wwhheenn>>]]
+           option.
+
+       color.diff.<slot>
+           Use customized color for diff colorization.  <<sslloott>> specifies which part of the patch to use the specified color, and is one of ccoonntteexxtt (context
+           text - ppllaaiinn is a historical synonym), mmeettaa (metainformation), ffrraagg (hunk header), _f_u_n_c (function in hunk header), oolldd (removed lines), nneeww (added
+           lines), ccoommmmiitt (commit headers), wwhhiitteessppaaccee (highlighting whitespace errors), oollddMMoovveedd (deleted lines), nneewwMMoovveedd (added lines), oollddMMoovveeddDDiimmmmeedd,
+           oollddMMoovveeddAAlltteerrnnaattiivvee, oollddMMoovveeddAAlltteerrnnaattiivveeDDiimmmmeedd, nneewwMMoovveeddDDiimmmmeedd, nneewwMMoovveeddAAlltteerrnnaattiivvee nneewwMMoovveeddAAlltteerrnnaattiivveeDDiimmmmeedd (See the _<_m_o_d_e_> setting of
+           _-_-_c_o_l_o_r_-_m_o_v_e_d in ggiitt--ddiiffff(1) for details), ccoonntteexxttDDiimmmmeedd, oollddDDiimmmmeedd, nneewwDDiimmmmeedd, ccoonntteexxttBBoolldd, oollddBBoolldd, and nneewwBBoolldd (see ggiitt--rraannggee--ddiiffff(1) for
+           details).
+
+       color.decorate.<slot>
+           Use customized color for _g_i_t _l_o_g _-_-_d_e_c_o_r_a_t_e output.  <<sslloott>> is one of bbrraanncchh, rreemmootteeBBrraanncchh, ttaagg, ssttaasshh or HHEEAADD for local branches, remote-tracking
+           branches, tags, stash and HEAD, respectively and ggrraafftteedd for grafted commits.
+
+       color.grep
+           When set to aallwwaayyss, always highlight matches. When ffaallssee (or nneevveerr), never. When set to ttrruuee or aauuttoo, use color only when the output is written to
+           the terminal. If unset, then the value of ccoolloorr..uuii is used (aauuttoo by default).
+
+       color.grep.<slot>
+           Use customized color for grep colorization.  <<sslloott>> specifies which part of the line to use the specified color, and is one of
+
+           ccoonntteexxtt
+               non-matching text in context lines (when using --AA, --BB, or --CC)
+
+           ffiilleennaammee
+               filename prefix (when not using --hh)
+
+           ffuunnccttiioonn
+               function name lines (when using --pp)
+
+           lliinneeNNuummbbeerr
+               line number prefix (when using --nn)
+
+           ccoolluummnn
+               column number prefix (when using ----ccoolluummnn)
+
+           mmaattcchh
+               matching text (same as setting mmaattcchhCCoonntteexxtt and mmaattcchhSSeelleecctteedd)
+
+           mmaattcchhCCoonntteexxtt
+               matching text in context lines
+
+           mmaattcchhSSeelleecctteedd
+               matching text in selected lines. Also, used to customize the following ggiitt--lloogg(1) subcommands: ----ggrreepp, ----aauutthhoorr and ----ccoommmmiitttteerr.
+
+           sseelleecctteedd
+               non-matching text in selected lines. Also, used to customize the following ggiitt--lloogg(1) subcommands: ----ggrreepp, ----aauutthhoorr and ----ccoommmmiitttteerr.
+
+           sseeppaarraattoorr
+               separators between fields on a line (::, --, and ==) and between hunks (----)
+
+       color.interactive
+           When set to aallwwaayyss, always use colors for interactive prompts and displays (such as those used by "git-add --interactive" and "git-clean
+           --interactive"). When false (or nneevveerr), never. When set to ttrruuee or aauuttoo, use colors only when the output is to the terminal. If unset, then the
+           value of ccoolloorr..uuii is used (aauuttoo by default).
+
+       color.interactive.<slot>
+           Use customized color for _g_i_t _a_d_d _-_-_i_n_t_e_r_a_c_t_i_v_e and _g_i_t _c_l_e_a_n _-_-_i_n_t_e_r_a_c_t_i_v_e output.  <<sslloott>> may be pprroommpptt, hheeaaddeerr, hheellpp or eerrrroorr, for four distinct
+           types of normal output from interactive commands.
+
+       color.pager
+           A boolean to specify whether aauuttoo color modes should colorize output going to the pager. Defaults to true; set this to false if your pager does not
+           understand ANSI color codes.
+
+       color.push
+           A boolean to enable/disable color in push errors. May be set to aallwwaayyss, ffaallssee (or nneevveerr) or aauuttoo (or ttrruuee), in which case colors are used only when
+           the error output goes to a terminal. If unset, then the value of ccoolloorr..uuii is used (aauuttoo by default).
+
+       color.push.error
+           Use customized color for push errors.
+
+       color.remote
+           If set, keywords at the start of the line are highlighted. The keywords are "error", "warning", "hint" and "success", and are matched
+           case-insensitively. May be set to aallwwaayyss, ffaallssee (or nneevveerr) or aauuttoo (or ttrruuee). If unset, then the value of ccoolloorr..uuii is used (aauuttoo by default).
+
+       color.remote.<slot>
+           Use customized color for each remote keyword.  <<sslloott>> may be hhiinntt, wwaarrnniinngg, ssuucccceessss or eerrrroorr which match the corresponding keyword.
+
+       color.showBranch
+           A boolean to enable/disable color in the output of ggiitt--sshhooww--bbrraanncchh(1). May be set to aallwwaayyss, ffaallssee (or nneevveerr) or aauuttoo (or ttrruuee), in which case
+           colors are used only when the output is to a terminal. If unset, then the value of ccoolloorr..uuii is used (aauuttoo by default).
+
+       color.status
+           A boolean to enable/disable color in the output of ggiitt--ssttaattuuss(1). May be set to aallwwaayyss, ffaallssee (or nneevveerr) or aauuttoo (or ttrruuee), in which case colors are
+           used only when the output is to a terminal. If unset, then the value of ccoolloorr..uuii is used (aauuttoo by default).
+
+       color.status.<slot>
+           Use customized color for status colorization.  <<sslloott>> is one of hheeaaddeerr (the header text of the status message), aaddddeedd or uuppddaatteedd (files which are
+           added but not committed), cchhaannggeedd (files which are changed but not added in the index), uunnttrraacckkeedd (files which are not tracked by Git), bbrraanncchh (the
+           current branch), nnoobbrraanncchh (the color the _n_o _b_r_a_n_c_h warning is shown in, defaulting to red), llooccaallBBrraanncchh or rreemmootteeBBrraanncchh (the local and remote branch
+           names, respectively, when branch and tracking information is displayed in the status short-format), or uunnmmeerrggeedd (files which have unmerged changes).
+
+       color.transport
+           A boolean to enable/disable color when pushes are rejected. May be set to aallwwaayyss, ffaallssee (or nneevveerr) or aauuttoo (or ttrruuee), in which case colors are used
+           only when the error output goes to a terminal. If unset, then the value of ccoolloorr..uuii is used (aauuttoo by default).
+
+       color.transport.rejected
+           Use customized color when a push was rejected.
+
+       color.ui
+           This variable determines the default value for variables such as ccoolloorr..ddiiffff and ccoolloorr..ggrreepp that control the use of color per command family. Its
+           scope will expand as more commands learn configuration to set a default for the ----ccoolloorr option. Set it to ffaallssee or nneevveerr if you prefer Git commands
+           not to use color unless enabled explicitly with some other configuration or the ----ccoolloorr option. Set it to aallwwaayyss if you want all output not intended
+           for machine consumption to use color, to ttrruuee or aauuttoo (this is the default since Git 1.8.4) if you want such output to use color when written to the
+           terminal.
+
+       column.ui
+           Specify whether supported commands should output in columns. This variable consists of a list of tokens separated by spaces or commas:
+
+           These options control when the feature should be enabled (defaults to _n_e_v_e_r):
+
+           aallwwaayyss
+               always show in columns
+
+           nneevveerr
+               never show in columns
+
+           aauuttoo
+               show in columns if the output is to the terminal
+
+           These options control layout (defaults to _c_o_l_u_m_n). Setting any of these implies _a_l_w_a_y_s if none of _a_l_w_a_y_s, _n_e_v_e_r, or _a_u_t_o are specified.
+
+           ccoolluummnn
+               fill columns before rows
+
+           rrooww
+               fill rows before columns
+
+           ppllaaiinn
+               show in one column
+
+           Finally, these options can be combined with a layout option (defaults to _n_o_d_e_n_s_e):
+
+           ddeennssee
+               make unequal size columns to utilize more space
+
+           nnooddeennssee
+               make equal size columns
+
+       column.branch
+           Specify whether to output branch listing in ggiitt bbrraanncchh in columns. See ccoolluummnn..uuii for details.
+
+       column.clean
+           Specify the layout when list items in ggiitt cclleeaann --ii, which always shows files and directories in columns. See ccoolluummnn..uuii for details.
+
+       column.status
+           Specify whether to output untracked files in ggiitt ssttaattuuss in columns. See ccoolluummnn..uuii for details.
+
+       column.tag
+           Specify whether to output tag listing in ggiitt ttaagg in columns. See ccoolluummnn..uuii for details.
+
+       commit.cleanup
+           This setting overrides the default of the ----cclleeaannuupp option in ggiitt ccoommmmiitt. See ggiitt--ccoommmmiitt(1) for details. Changing the default can be useful when you
+           always want to keep lines that begin with comment character ## in your log message, in which case you would do ggiitt ccoonnffiigg ccoommmmiitt..cclleeaannuupp wwhhiitteessppaaccee
+           (note that you will have to remove the help lines that begin with ## in the commit log template yourself, if you do this).
+
+       commit.gpgSign
+           A boolean to specify whether all commits should be GPG signed. Use of this option when doing operations such as rebase can result in a large number
+           of commits being signed. It may be convenient to use an agent to avoid typing your GPG passphrase several times.
+
+       commit.status
+           A boolean to enable/disable inclusion of status information in the commit message template when using an editor to prepare the commit message.
+           Defaults to true.
+
+       commit.template
+           Specify the pathname of a file to use as the template for new commit messages.
+
+       commit.verbose
+           A boolean or int to specify the level of verbose with ggiitt ccoommmmiitt. See ggiitt--ccoommmmiitt(1).
+
+       commitGraph.generationVersion
+           Specifies the type of generation number version to use when writing or reading the commit-graph file. If version 1 is specified, then the corrected
+           commit dates will not be written or read. Defaults to 2.
+
+       commitGraph.maxNewFilters
+           Specifies the default value for the ----mmaaxx--nneeww--ffiilltteerrss option of ggiitt ccoommmmiitt--ggrraapphh wwrriittee (c.f., ggiitt--ccoommmmiitt--ggrraapphh(1)).
+
+       commitGraph.readChangedPaths
+           If true, then git will use the changed-path Bloom filters in the commit-graph file (if it exists, and they are present). Defaults to true. See ggiitt--
+           ccoommmmiitt--ggrraapphh(1) for more information.
+
+       credential.helper
+           Specify an external helper to be called when a username or password credential is needed; the helper may consult external storage to avoid prompting
+           the user for the credentials. This is normally the name of a credential helper with possible arguments, but may also be an absolute path with
+           arguments or, if preceded by !!, shell commands.
+
+           Note that multiple helpers may be defined. See ggiittccrreeddeennttiiaallss(7) for details and examples.
+
+       credential.useHttpPath
+           When acquiring credentials, consider the "path" component of an http or https URL to be important. Defaults to false. See ggiittccrreeddeennttiiaallss(7) for more
+           information.
+
+       credential.username
+           If no username is set for a network authentication, use this username by default. See credential.<context>.* below, and ggiittccrreeddeennttiiaallss(7).
+
+       credential.<url>.*
+           Any of the credential.* options above can be applied selectively to some credentials. For example "credential.https://example.com.username" would
+           set the default username only for https connections to example.com. See ggiittccrreeddeennttiiaallss(7) for details on how URLs are matched.
+
+       credentialCache.ignoreSIGHUP
+           Tell git-credential-cache—daemon to ignore SIGHUP, instead of quitting.
+
+       credentialStore.lockTimeoutMS
+           The length of time, in milliseconds, for git-credential-store to retry when trying to lock the credentials file. Value 0 means not to retry at all;
+           -1 means to try indefinitely. Default is 1000 (i.e., retry for 1s).
+
+       completion.commands
+           This is only used by git-completion.bash to add or remove commands from the list of completed commands. Normally only porcelain commands and a few
+           select others are completed. You can add more commands, separated by space, in this variable. Prefixing the command with _- will remove it from the
+           existing list.
+
+       diff.autoRefreshIndex
+           When using _g_i_t _d_i_f_f to compare with work tree files, do not consider stat-only change as changed. Instead, silently run ggiitt uuppddaattee--iinnddeexx ----rreeffrreesshh
+           to update the cached stat information for paths whose contents in the work tree match the contents in the index. This option defaults to true. Note
+           that this affects only _g_i_t _d_i_f_f Porcelain, and not lower level _d_i_f_f commands such as _g_i_t _d_i_f_f_-_f_i_l_e_s.
+
+       diff.dirstat
+           A comma separated list of ----ddiirrssttaatt parameters specifying the default behavior of the ----ddiirrssttaatt option to ggiitt--ddiiffff(1) and friends. The defaults can
+           be overridden on the command line (using ----ddiirrssttaatt==<<ppaarraamm11,,ppaarraamm22,,......>>). The fallback defaults (when not changed by ddiiffff..ddiirrssttaatt) are
+           cchhaannggeess,,nnoonnccuummuullaattiivvee,,33. The following parameters are available:
+
+           cchhaannggeess
+               Compute the dirstat numbers by counting the lines that have been removed from the source, or added to the destination. This ignores the amount
+               of pure code movements within a file. In other words, rearranging lines in a file is not counted as much as other changes. This is the default
+               behavior when no parameter is given.
+
+           lliinneess
+               Compute the dirstat numbers by doing the regular line-based diff analysis, and summing the removed/added line counts. (For binary files, count
+               64-byte chunks instead, since binary files have no natural concept of lines). This is a more expensive ----ddiirrssttaatt behavior than the cchhaannggeess
+               behavior, but it does count rearranged lines within a file as much as other changes. The resulting output is consistent with what you get from
+               the other ----**ssttaatt options.
+
+           ffiilleess
+               Compute the dirstat numbers by counting the number of files changed. Each changed file counts equally in the dirstat analysis. This is the
+               computationally cheapest ----ddiirrssttaatt behavior, since it does not have to look at the file contents at all.
+
+           ccuummuullaattiivvee
+               Count changes in a child directory for the parent directory as well. Note that when using ccuummuullaattiivvee, the sum of the percentages reported may
+               exceed 100%. The default (non-cumulative) behavior can be specified with the nnoonnccuummuullaattiivvee parameter.
+
+           <limit>
+               An integer parameter specifies a cut-off percent (3% by default). Directories contributing less than this percentage of the changes are not
+               shown in the output.
+
+           Example: The following will count changed files, while ignoring directories with less than 10% of the total amount of changed files, and
+           accumulating child directory counts in the parent directories: ffiilleess,,1100,,ccuummuullaattiivvee.
+
+       diff.statGraphWidth
+           Limit the width of the graph part in --stat output. If set, applies to all commands generating --stat output except format-patch.
+
+       diff.context
+           Generate diffs with <n> lines of context instead of the default of 3. This value is overridden by the -U option.
+
+       diff.interHunkContext
+           Show the context between diff hunks, up to the specified number of lines, thereby fusing the hunks that are close to each other. This value serves
+           as the default for the ----iinntteerr--hhuunnkk--ccoonntteexxtt command line option.
+
+       diff.external
+           If this config variable is set, diff generation is not performed using the internal diff machinery, but using the given command. Can be overridden
+           with the ‘GIT_EXTERNAL_DIFF’ environment variable. The command is called with parameters as described under "git Diffs" in ggiitt(1). Note: if you want
+           to use an external diff program only on a subset of your files, you might want to use ggiittaattttrriibbuutteess(5) instead.
+
+       diff.ignoreSubmodules
+           Sets the default value of --ignore-submodules. Note that this affects only _g_i_t _d_i_f_f Porcelain, and not lower level _d_i_f_f commands such as _g_i_t
+           _d_i_f_f_-_f_i_l_e_s.  _g_i_t _c_h_e_c_k_o_u_t and _g_i_t _s_w_i_t_c_h also honor this setting when reporting uncommitted changes. Setting it to _a_l_l disables the submodule
+           summary normally shown by _g_i_t _c_o_m_m_i_t and _g_i_t _s_t_a_t_u_s when ssttaattuuss..ssuubbmmoodduulleeSSuummmmaarryy is set unless it is overridden by using the --ignore-submodules
+           command-line option. The _g_i_t _s_u_b_m_o_d_u_l_e commands are not affected by this setting. By default this is set to untracked so that any untracked
+           submodules are ignored.
+
+       diff.mnemonicPrefix
+           If set, _g_i_t _d_i_f_f uses a prefix pair that is different from the standard "a/" and "b/" depending on what is being compared. When this configuration
+           is in effect, reverse diff output also swaps the order of the prefixes:
+
+           ggiitt ddiiffff
+               compares the (i)ndex and the (w)ork tree;
+
+           ggiitt ddiiffff HHEEAADD
+               compares a (c)ommit and the (w)ork tree;
+
+           ggiitt ddiiffff ----ccaacchheedd
+               compares a (c)ommit and the (i)ndex;
+
+           ggiitt ddiiffff HHEEAADD::ffiillee11 ffiillee22
+               compares an (o)bject and a (w)ork tree entity;
+
+           ggiitt ddiiffff ----nnoo--iinnddeexx aa bb
+               compares two non-git things (1) and (2).
+
+       diff.noprefix
+           If set, _g_i_t _d_i_f_f does not show any source or destination prefix.
+
+       diff.relative
+           If set to _t_r_u_e, _g_i_t _d_i_f_f does not show changes outside of the directory and show pathnames relative to the current directory.
+
+       diff.orderFile
+           File indicating how to order files within a diff. See the _-_O option to ggiitt--ddiiffff(1) for details. If ddiiffff..oorrddeerrFFiillee is a relative pathname, it is
+           treated as relative to the top of the working tree.
+
+       diff.renameLimit
+           The number of files to consider in the exhaustive portion of copy/rename detection; equivalent to the _g_i_t _d_i_f_f option --ll. If not set, the default
+           value is currently 1000. This setting has no effect if rename detection is turned off.
+
+       diff.renames
+           Whether and how Git detects renames. If set to "false", rename detection is disabled. If set to "true", basic rename detection is enabled. If set to
+           "copies" or "copy", Git will detect copies, as well. Defaults to true. Note that this affects only _g_i_t _d_i_f_f Porcelain like ggiitt--ddiiffff(1) and ggiitt--
+           lloogg(1), and not lower level commands such as ggiitt--ddiiffff--ffiilleess(1).
+
+       diff.suppressBlankEmpty
+           A boolean to inhibit the standard behavior of printing a space before each empty output line. Defaults to false.
+
+       diff.submodule
+           Specify the format in which differences in submodules are shown. The "short" format just shows the names of the commits at the beginning and end of
+           the range. The "log" format lists the commits in the range like
